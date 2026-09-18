@@ -1,0 +1,980 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>DDE Telecom | Gerenciar Planos</title>
+
+    <link
+        rel="stylesheet"
+        href="/admin/admin.css"
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        #novo-plano {
+            min-height: 42px;
+            padding: 0 18px;
+
+            border: 0;
+            border-radius: 9px;
+
+            background: #00ad7c;
+            color: #ffffff;
+
+            font-size: 12px;
+            font-weight: 900;
+
+            cursor: pointer;
+        }
+
+        .ferramentas-planos {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #pesquisa-plano {
+            width: 260px;
+        }
+
+        #filtro-tipo {
+            width: 185px;
+        }
+
+        #filtro-ativo {
+            width: 155px;
+        }
+
+        #pesquisa-plano,
+        #filtro-tipo,
+        #filtro-ativo {
+            height: 44px;
+
+            padding: 0 14px;
+
+            border: 1px solid #c9dce6;
+            border-radius: 10px;
+
+            background: #ffffff;
+            color: #264d64;
+
+            outline: none;
+        }
+
+        .tabela-planos {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .tabela-planos th:nth-child(1) {
+            width: 29%;
+        }
+
+        .tabela-planos th:nth-child(2) {
+            width: 16%;
+        }
+
+        .tabela-planos th:nth-child(3) {
+            width: 19%;
+        }
+
+        .tabela-planos th:nth-child(4) {
+            width: 12%;
+        }
+
+        .tabela-planos th:nth-child(5) {
+            width: 12%;
+        }
+
+        .tabela-planos th:nth-child(6) {
+            width: 12%;
+        }
+
+        #lista-planos-admin td {
+            padding-top: 16px;
+            padding-bottom: 16px;
+
+            vertical-align: middle;
+        }
+
+        #lista-planos-admin td:first-child strong {
+            display: block;
+
+            color: #00587d;
+
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        #lista-planos-admin td:first-child small {
+            display: block;
+
+            margin-top: 4px;
+
+            color: #718b9b;
+
+            font-size: 10px;
+            line-height: 1.35;
+        }
+
+        .status-plano {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-width: 76px;
+            min-height: 29px;
+
+            padding: 0 12px;
+
+            border-radius: 999px;
+
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .status-plano.ativo {
+            background: #daf7ed;
+            color: #00a36f;
+        }
+
+        .status-plano.inativo {
+            background: #ffe5e5;
+            color: #d83a3a;
+        }
+
+        .acoes-plano {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            gap: 7px;
+
+            white-space: nowrap;
+        }
+
+        .btn-editar-plano,
+        .btn-menu-plano {
+            height: 38px;
+        }
+
+        .btn-editar-plano {
+            min-width: 82px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 6px;
+
+            padding: 0 12px;
+
+            border: 1px solid #1689df;
+            border-radius: 8px;
+
+            background: #ffffff;
+            color: #087acb;
+
+            font-size: 10px;
+            font-weight: 900;
+
+            cursor: pointer;
+        }
+
+        .btn-editar-plano::before {
+            content: "✎";
+            font-size: 12px;
+        }
+
+        .btn-editar-plano:hover {
+            background: #edf8ff;
+        }
+
+        .menu-plano {
+            position: relative;
+        }
+
+        .btn-menu-plano {
+            width: 38px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid #c7d9e3;
+            border-radius: 8px;
+
+            background: #ffffff;
+            color: #34576b;
+
+            font-size: 18px;
+            font-weight: 900;
+
+            cursor: pointer;
+        }
+
+        .btn-menu-plano:hover,
+        .btn-menu-plano.aberto {
+            border-color: #1689df;
+
+            color: #087acb;
+            background: #f1f9fd;
+        }
+
+        .menu-plano-lista {
+            position: absolute;
+            z-index: 9999;
+
+            top: calc(100% + 7px);
+            right: 0;
+
+            width: 190px;
+
+            display: none;
+
+            padding: 6px;
+
+            border: 1px solid #d4e2e9;
+            border-radius: 10px;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 14px 32px
+                rgba(0, 48, 70, .16);
+        }
+
+        .menu-plano-lista.aberto {
+            display: block;
+        }
+
+        .menu-plano-item {
+            width: 100%;
+            min-height: 40px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 0 11px;
+
+            border: 0;
+            border-radius: 7px;
+
+            background: transparent;
+
+            font-size: 11px;
+            font-weight: 800;
+
+            text-align: left;
+
+            cursor: pointer;
+        }
+
+        .menu-plano-item:hover {
+            background: #f4f8fa;
+        }
+
+        .menu-plano-item.status-desativar {
+            color: #dd8500;
+        }
+
+        .menu-plano-item.status-ativar {
+            color: #009b6a;
+        }
+
+        .menu-plano-item.excluir {
+            color: #d63e3e;
+        }
+
+        #modal-plano .modal-caixa {
+            width: min(820px, 96vw);
+
+            max-height: calc(100vh - 34px);
+
+            overflow-y: auto;
+
+            padding: 30px 34px 32px;
+
+            border-radius: 18px;
+        }
+
+        .grupo-formulario {
+            margin-bottom: 24px;
+            padding-bottom: 22px;
+
+            border-bottom: 1px solid #e4edf2;
+        }
+
+        .grupo-formulario-titulo {
+            margin-bottom: 15px;
+
+            color: #00a87a;
+
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .grade-formulario {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 16px 18px;
+        }
+
+        .campo-form {
+            display: flex;
+            flex-direction: column;
+
+            gap: 7px;
+        }
+
+        .campo-inteiro {
+            grid-column: 1 / -1;
+        }
+
+        #form-plano input,
+        #form-plano select,
+        #form-plano textarea {
+            width: 100%;
+
+            border: 1px solid #c9dce6;
+            border-radius: 9px;
+
+            background: #ffffff;
+            color: #183f57;
+
+            outline: none;
+        }
+
+        #form-plano input,
+        #form-plano select {
+            height: 44px;
+
+            padding: 0 13px;
+        }
+
+        #form-plano textarea {
+            min-height: 96px;
+
+            padding: 11px 13px;
+
+            resize: vertical;
+        }
+
+        .campo-destaque {
+            min-height: 44px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 13px;
+
+            border: 1px solid #c9dce6;
+            border-radius: 9px;
+
+            background: #fafcfd;
+        }
+
+        .campo-destaque label {
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+        }
+
+        .campo-destaque input {
+            width: 17px !important;
+            height: 17px !important;
+        }
+
+        .botao-salvar-comercial {
+            width: 100%;
+            min-height: 48px;
+
+            border: 0;
+            border-radius: 10px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #006a91,
+                    #075f88
+                );
+
+            color: #ffffff;
+
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="logo">
+        <strong>DDE</strong>
+        <span>Telecom</span>
+    </div>
+
+    <div class="sidebar-titulo">
+        PAINEL COMERCIAL
+    </div>
+
+    <nav>
+
+        <a href="/admin/index.html">
+            <span>⌂</span>
+            Visão geral
+        </a>
+
+        <a href="/admin/leads.html">
+            <span>◎</span>
+            Leads
+        </a>
+
+        <a
+            href="/admin/planos.html"
+            class="ativo"
+        >
+            <span>▣</span>
+            Planos
+        </a>
+
+        <a
+            href="/"
+            target="_blank"
+        >
+            <span>↗</span>
+            Ver site
+        </a>
+
+    </nav>
+
+    <div class="sidebar-rodape">
+        DDE Telecom<br>
+        Gestão comercial
+    </div>
+
+</aside>
+
+
+<main class="principal">
+
+    <section class="topo">
+
+        <div>
+
+            <span class="saudacao">
+                ADMINISTRAÇÃO
+            </span>
+
+            <h1>
+                Gerenciar planos
+            </h1>
+
+            <p>
+                Cadastre, edite e controle os planos exibidos no site.
+            </p>
+
+        </div>
+
+        <div class="acoes-topo">
+
+            <div class="usuario-logado">
+
+                <span>
+                    Usuário conectado
+                </span>
+
+                <strong id="nome-usuario">
+                    Administrador
+                </strong>
+
+            </div>
+
+            <button
+                type="button"
+                class="botao-atualizar"
+                id="atualizar-planos"
+            >
+                Atualizar
+            </button>
+
+            <button
+                type="button"
+                id="novo-plano"
+            >
+                + Novo plano
+            </button>
+
+            <button
+                type="button"
+                class="botao-sair"
+                id="sair"
+            >
+                Sair
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <section class="indicadores">
+
+        <div class="indicador">
+            <div class="indicador-icone">▣</div>
+            <div>
+                <span>Total de planos</span>
+                <strong id="total-planos">0</strong>
+            </div>
+        </div>
+
+        <div class="indicador">
+            <div class="indicador-icone convertido">✓</div>
+            <div>
+                <span>Ativos</span>
+                <strong id="total-ativos">0</strong>
+            </div>
+        </div>
+
+        <div class="indicador">
+            <div class="indicador-icone atendimento">○</div>
+            <div>
+                <span>Inativos</span>
+                <strong id="total-inativos">0</strong>
+            </div>
+        </div>
+
+        <div class="indicador">
+            <div class="indicador-icone novo">◉</div>
+            <div>
+                <span>Categorias</span>
+                <strong id="total-categorias">0</strong>
+            </div>
+        </div>
+
+    </section>
+
+
+    <section class="painel-leads">
+
+        <div class="cabecalho-leads">
+
+            <div>
+
+                <span class="mini-titulo">
+                    CATÁLOGO
+                </span>
+
+                <h2>
+                    Planos cadastrados
+                </h2>
+
+            </div>
+
+            <div class="ferramentas-planos">
+
+                <input
+                    type="search"
+                    id="pesquisa-plano"
+                    placeholder="Pesquisar plano..."
+                >
+
+                <select id="filtro-tipo">
+
+                    <option value="">
+                        Todas as categorias
+                    </option>
+
+                    <option value="internet">
+                        Internet Fibra
+                    </option>
+
+                    <option value="controle">
+                        Controle
+                    </option>
+
+                    <option value="pos">
+                        Pós-pago
+                    </option>
+
+                </select>
+
+                <select id="filtro-ativo">
+
+                    <option value="">
+                        Todos os status
+                    </option>
+
+                    <option value="true">
+                        Ativos
+                    </option>
+
+                    <option value="false">
+                        Inativos
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <p
+            class="mensagem"
+            id="mensagem-planos"
+        ></p>
+
+        <div class="tabela-container">
+
+            <table class="tabela-planos">
+
+                <thead>
+                    <tr>
+                        <th>Plano</th>
+                        <th>Categoria</th>
+                        <th>Velocidade / Franquia</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody id="lista-planos-admin"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<div
+    class="modal"
+    id="modal-plano"
+>
+
+    <div
+        class="modal-fundo"
+        id="modal-plano-fundo"
+    ></div>
+
+    <div class="modal-caixa">
+
+        <button
+            type="button"
+            class="fechar-modal"
+            id="fechar-modal-plano"
+        >
+            ×
+        </button>
+
+        <span class="mini-titulo">
+            PLANO
+        </span>
+
+        <h2 id="titulo-modal-plano">
+            Novo plano
+        </h2>
+
+        <form id="form-plano">
+
+            <input
+                type="hidden"
+                id="plano-id"
+            >
+
+            <div class="grupo-formulario">
+
+                <div class="grupo-formulario-titulo">
+                    Dados principais
+                </div>
+
+                <div class="grade-formulario">
+
+                    <div class="campo-form campo-inteiro">
+
+                        <label for="plano-nome">
+                            Nome do plano
+                        </label>
+
+                        <input
+                            type="text"
+                            id="plano-nome"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label for="plano-tipo">
+                            Categoria
+                        </label>
+
+                        <select
+                            id="plano-tipo"
+                            required
+                        >
+                            <option value="">
+                                Selecione
+                            </option>
+
+                            <option value="internet">
+                                Internet Fibra
+                            </option>
+
+                            <option value="controle">
+                                Controle
+                            </option>
+
+                            <option value="pos">
+                                Pós-pago
+                            </option>
+                        </select>
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label for="plano-ativo">
+                            Status
+                        </label>
+
+                        <select id="plano-ativo">
+                            <option value="true">
+                                Ativo
+                            </option>
+
+                            <option value="false">
+                                Inativo
+                            </option>
+                        </select>
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label for="plano-velocidade">
+                            Velocidade
+                        </label>
+
+                        <input
+                            type="text"
+                            id="plano-velocidade"
+                        >
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label for="plano-franquia">
+                            Franquia
+                        </label>
+
+                        <input
+                            type="text"
+                            id="plano-franquia"
+                        >
+
+                    </div>
+
+                    <div class="campo-form campo-inteiro">
+
+                        <label for="plano-preco">
+                            Preço mensal
+                        </label>
+
+                        <input
+                            type="number"
+                            id="plano-preco"
+                            step="0.01"
+                            min="0"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="grupo-formulario">
+
+                <div class="grupo-formulario-titulo">
+                    Exibição no site
+                </div>
+
+                <div class="grade-formulario">
+
+                    <div class="campo-form">
+
+                        <label for="plano-selo">
+                            Selo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="plano-selo"
+                        >
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label for="plano-ordem">
+                            Ordem
+                        </label>
+
+                        <input
+                            type="number"
+                            id="plano-ordem"
+                            min="0"
+                            value="0"
+                        >
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label for="plano-fidelidade">
+                            Fidelidade
+                        </label>
+
+                        <select id="plano-fidelidade">
+
+                            <option value="">
+                                Não informado
+                            </option>
+
+                            <option value="0">
+                                Sem fidelidade
+                            </option>
+
+                            <option value="12">
+                                12 meses
+                            </option>
+
+                            <option value="24">
+                                24 meses
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="campo-form">
+
+                        <label>
+                            Destaque
+                        </label>
+
+                        <div class="campo-destaque">
+
+                            <label for="plano-destaque">
+
+                                <input
+                                    type="checkbox"
+                                    id="plano-destaque"
+                                >
+
+                                Destacar plano
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="grupo-formulario">
+
+                <div class="grupo-formulario-titulo">
+                    Conteúdo
+                </div>
+
+                <div class="grade-formulario">
+
+                    <div class="campo-form campo-inteiro">
+
+                        <label for="plano-descricao">
+                            Descrição
+                        </label>
+
+                        <textarea
+                            id="plano-descricao"
+                        ></textarea>
+
+                    </div>
+
+                    <div class="campo-form campo-inteiro">
+
+                        <label for="plano-beneficios">
+                            Benefícios
+                        </label>
+
+                        <textarea
+                            id="plano-beneficios"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="botao-salvar-comercial"
+            >
+                Salvar plano
+            </button>
+
+            <p
+                id="mensagem-form-plano"
+                class="mensagem-comercial"
+            ></p>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script src="/admin/planos.js?v=30"></script>
+
+</body>
+
+</html>

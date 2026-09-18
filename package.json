@@ -1,0 +1,32 @@
+{
+  "name": "dde-telecom",
+  "version": "1.0.0",
+  "description": "Site e sistema de gestão comercial da DDE Telecom",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "check": "node --check src/server.js && node --check public/admin/admin.js && node --check public/admin/login.js && node --check public/admin/planos.js && node --check public/js/app.js"
+  },
+  "keywords": [
+    "dde",
+    "telecom"
+  ],
+  "author": "DDE Telecom",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

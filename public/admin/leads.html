@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Leads | DDE Telecom</title>
+
+    <link
+        rel="stylesheet"
+        href="/admin/admin.css?v=21"
+    >
+</head>
+
+<body>
+
+    <!-- =================================================
+         MENU LATERAL
+    ================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <strong>DDE</strong>
+            <span>Telecom</span>
+        </div>
+
+        <div class="sidebar-titulo">
+            PAINEL COMERCIAL
+        </div>
+
+        <nav>
+
+            <a href="/admin/index.html">
+                <span>⌂</span>
+                Visão geral
+            </a>
+
+            <a
+                href="/admin/leads.html"
+                class="ativo"
+            >
+                <span>◎</span>
+                Leads
+            </a>
+
+            <a href="/admin/planos.html">
+                <span>▣</span>
+                Planos
+            </a>
+
+            <a
+                href="/"
+                target="_blank"
+            >
+                <span>↗</span>
+                Ver site
+            </a>
+
+        </nav>
+
+        <div class="sidebar-rodape">
+            DDE Telecom
+            <br>
+            Gestão Comercial
+        </div>
+
+    </aside>
+
+
+    <!-- =================================================
+         CONTEÚDO PRINCIPAL
+    ================================================== -->
+
+    <main class="principal">
+
+        <header class="topo">
+
+            <div>
+
+                <span class="saudacao">
+                    DDE TELECOM
+                </span>
+
+                <h1>
+                    Leads
+                </h1>
+
+                <p>
+                    Consulte, filtre e acompanhe todas
+                    as oportunidades comerciais.
+                </p>
+
+            </div>
+
+
+            <div class="acoes-topo">
+
+                <div class="usuario-logado">
+
+                    <span>
+                        Usuário logado
+                    </span>
+
+                    <strong id="nome-usuario">
+                        Administrador DDE
+                    </strong>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="atualizar"
+                    class="botao-atualizar"
+                >
+                    ↻ Atualizar dados
+                </button>
+
+
+                <button
+                    type="button"
+                    id="sair"
+                    class="botao-sair"
+                >
+                    Sair
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             INDICADORES
+        ================================================== -->
+
+        <section class="indicadores">
+
+            <article class="indicador">
+
+                <div class="indicador-icone">
+                    ◎
+                </div>
+
+                <div>
+                    <span>Total de leads</span>
+                    <strong id="total-leads">0</strong>
+                </div>
+
+            </article>
+
+
+            <article class="indicador">
+
+                <div class="indicador-icone novo">
+                    +
+                </div>
+
+                <div>
+                    <span>Novos</span>
+                    <strong id="total-novos">0</strong>
+                </div>
+
+            </article>
+
+
+            <article class="indicador">
+
+                <div class="indicador-icone atendimento">
+                    ◷
+                </div>
+
+                <div>
+                    <span>Em atendimento</span>
+                    <strong id="total-atendimento">0</strong>
+                </div>
+
+            </article>
+
+
+            <article class="indicador">
+
+                <div class="indicador-icone convertido">
+                    ✓
+                </div>
+
+                <div>
+                    <span>Vendas realizadas</span>
+                    <strong id="total-convertidos">0</strong>
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =================================================
+             LEADS
+        ================================================== -->
+
+        <section
+            class="painel-leads"
+            id="leads"
+        >
+
+            <div class="cabecalho-leads">
+
+                <div>
+
+                    <span class="mini-titulo">
+                        OPORTUNIDADES
+                    </span>
+
+                    <h2>
+                        Leads recebidos
+                    </h2>
+
+                </div>
+
+
+                <div class="ferramentas">
+
+                    <input
+                        type="search"
+                        id="pesquisa"
+                        placeholder="Buscar cliente, telefone, cidade..."
+                    >
+
+
+                    <select id="filtro-status">
+
+                        <option value="">
+                            Todos os status
+                        </option>
+
+                        <option value="novo">
+                            Novos
+                        </option>
+
+                        <option value="atendimento">
+                            Em atendimento
+                        </option>
+
+                        <option value="convertido">
+                            Vendas realizadas
+                        </option>
+
+                        <option value="nao_convertido">
+                            Não convertidos
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="mensagem"
+                class="mensagem"
+            >
+                Carregando leads...
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Contato</th>
+                            <th>Interesse</th>
+                            <th>Localidade</th>
+                            <th>Status</th>
+                            <th>Recebido</th>
+                            <th>Ação</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="lista-leads">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =================================================
+         MODAL DO LEAD
+    ================================================== -->
+
+    <div
+        class="modal"
+        id="modal-lead"
+    >
+
+        <div class="modal-fundo"></div>
+
+
+        <div class="modal-caixa">
+
+            <button
+                type="button"
+                id="fechar-modal"
+                class="fechar-modal"
+            >
+                ×
+            </button>
+
+
+            <span class="mini-titulo">
+                DDE TELECOM • LEAD
+            </span>
+
+
+            <h2 id="modal-nome">
+                Cliente
+            </h2>
+
+
+            <div
+                id="modal-status"
+                class="modal-status"
+            ></div>
+
+
+            <!-- =================================================
+                 DADOS DO CLIENTE
+            ================================================== -->
+
+            <div class="detalhes-grid">
+
+                <div class="detalhe">
+
+                    <span>
+                        Telefone / WhatsApp
+                    </span>
+
+                    <strong id="modal-telefone">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="detalhe">
+
+                    <span>
+                        E-mail
+                    </span>
+
+                    <strong id="modal-email">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="detalhe">
+
+                    <span>
+                        Plano de interesse
+                    </span>
+
+                    <strong id="modal-interesse">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="detalhe">
+
+                    <span>
+                        CEP
+                    </span>
+
+                    <strong id="modal-cep">
+                        -
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ENDEREÇO
+            ================================================== -->
+
+            <div class="endereco">
+
+                <span>
+                    ENDEREÇO
+                </span>
+
+                <strong id="modal-endereco">
+                    Não informado
+                </strong>
+
+            </div>
+
+
+            <!-- =================================================
+                 ACOMPANHAMENTO
+            ================================================== -->
+
+            <div class="gestao-comercial">
+
+                <div class="titulo-bloco">
+
+                    <div>
+
+                        <span class="mini-titulo">
+                            ACOMPANHAMENTO
+                        </span>
+
+                        <h3>
+                            Gestão comercial
+                        </h3>
+
+                    </div>
+
+
+                    <div class="ultimo-contato">
+
+                        <span>
+                            Último contato
+                        </span>
+
+                        <strong id="modal-ultimo-contato">
+                            Ainda não registrado
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <label for="campo-observacoes">
+                    Observações do atendimento
+                </label>
+
+
+                <textarea
+                    id="campo-observacoes"
+                    rows="5"
+                    placeholder="Ex.: Cliente interessado no plano. Retornar amanhã às 10h..."
+                ></textarea>
+
+
+                <button
+                    type="button"
+                    id="salvar-comercial"
+                    class="botao-salvar-comercial"
+                >
+                    Salvar acompanhamento
+                </button>
+
+
+                <p
+                    id="mensagem-comercial"
+                    class="mensagem-comercial"
+                ></p>
+
+            </div>
+
+
+            <!-- =================================================
+                 STATUS
+            ================================================== -->
+
+            <div class="gestao-status">
+
+                <span class="titulo-status">
+                    ETAPA DO ATENDIMENTO
+                </span>
+
+
+                <div class="botoes-status">
+
+                    <button
+                        type="button"
+                        class="botao-status"
+                        data-status="novo"
+                    >
+                        Novo
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="botao-status"
+                        data-status="atendimento"
+                    >
+                        Em atendimento
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="botao-status"
+                        data-status="convertido"
+                    >
+                        Venda realizada
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="botao-status"
+                        data-status="nao_convertido"
+                    >
+                        Não convertido
+                    </button>
+
+                </div>
+
+
+                <p
+                    id="mensagem-status"
+                    class="mensagem-status"
+                ></p>
+
+            </div>
+
+
+            <!-- =================================================
+                 AÇÕES
+            ================================================== -->
+
+            <div class="acoes-modal">
+
+                <button
+                    type="button"
+                    id="modal-whatsapp"
+                    class="acao-whatsapp"
+                >
+                    Falar pelo WhatsApp
+                </button>
+
+
+                <button
+                    type="button"
+                    id="modal-fechar-secundario"
+                    class="acao-fechar"
+                >
+                    Fechar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="/admin/admin.js?v=22"></script>
+
+</body>
+
+</html>
