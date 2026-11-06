@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const pool = require('./database/db');
+const { registerMetaIntegration } = require('./meta-integration');
 const app = express();
 
     
@@ -36,9 +37,13 @@ app.use(cors({
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({
+    limit: '100kb',
+    verify: (req, res, buffer) => { req.rawBody = Buffer.from(buffer); }
+}));
 app.use((req, res, next) => { req.body = req.body || {}; next(); });
 app.use(express.static(path.join(__dirname, '..', 'public')));
+registerMetaIntegration(app, pool);
 
 
 const loginLimiter=rateLimit({
@@ -72,6 +77,30 @@ const texto = valor => typeof valor === 'string' ? valor.trim() : '';
 const idValido = valor => /^[1-9]\d*$/.test(String(valor)) && Number.isSafeInteger(Number(valor));
 const assinaturaSenha = hash => crypto.createHash('sha256').update(hash).digest('hex');
 const usuarioPublico = u => ({ id: u.id, nome: u.nome, email: u.email, perfil: u.perfil, ativo: u.ativo });
+const camposMarketing = {
+    utm_source: 80,
+    utm_medium: 80,
+    utm_campaign: 150,
+    utm_content: 150,
+    utm_term: 150
+};
+function normalizarMetadadosMarketing(valor) {
+    if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return {};
+    const metadados = {};
+    for (const [campo, limite] of Object.entries(camposMarketing)) {
+        const entrada = valor[campo];
+        if (typeof entrada === 'string' && entrada.trim()) {
+            metadados[campo] = entrada.trim().slice(0, limite);
+        }
+    }
+    return metadados;
+}
+function origemDoLead(metadados) {
+    const fonte = texto(metadados?.utm_source).toLowerCase();
+    if (!['facebook', 'instagram', 'meta', 'fb', 'ig'].includes(fonte)) return 'site';
+    const meio = texto(metadados?.utm_medium).toLowerCase();
+    return /paid|cpc|ads|anuncio/.test(meio) ? 'meta_ads' : 'meta_social';
+}
 function normalizarLead(body = {}) {
     return {
         nome: texto(body.nome),
@@ -84,13 +113,15 @@ function normalizarLead(body = {}) {
         bairro: texto(body.bairro),
         cidade: texto(body.cidade),
         estado: texto(body.estado).toUpperCase(),
-        interesse: texto(body.interesse)
+        interesse: texto(body.interesse),
+        metadadosMarketing: normalizarMetadadosMarketing(body.metadados_marketing)
     };
 }
 function validarLead(lead, exigirInteresse = false) {
     if (!lead.nome || !lead.telefone) return 'Nome e telefone são obrigatórios.';
     if (exigirInteresse && !lead.interesse) return 'Selecione o produto ou plano do cliente.';
     if (lead.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) return 'Informe um e-mail válido.';
+    if (JSON.stringify(lead.metadadosMarketing).length > 1000) return 'Os dados de origem ultrapassam o limite permitido.';
 
     const limites = {
         nome: 150, telefone: 20, email: 150, cep: 9, logradouro: 150,
@@ -1684,12 +1715,14 @@ app.post(
                         estado,
                         interesse,
                         vendedor,
-                        vendedor_id
+                        vendedor_id,
+                        origem,
+                        metadados_marketing
                     )
 
                     VALUES (
                         $1,$2,$3,$4,$5,$6,$7,
-                        $8,$9,$10,$11,$12,$13
+                        $8,$9,$10,$11,$12,$13,'vendedor',$14::jsonb
                     )
 
                     RETURNING *
@@ -1709,7 +1742,9 @@ app.post(
 
                         vendedor.nome,
 
-                        vendedor.id
+                        vendedor.id,
+
+                        JSON.stringify(lead.metadadosMarketing)
                     ]
                 );
 
@@ -1761,12 +1796,17 @@ app.post('/api/leads', executar(async (req, res) => {
     if (!admins.rows.length) falhar(500, 'Administrador não encontrado ou desativado.');
     const admin = admins.rows[0];
     const { rows } = await pool.query(`
-        INSERT INTO leads (nome, telefone, email, cep, logradouro, numero, complemento, bairro, cidade, estado, interesse, vendedor, vendedor_id)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+        INSERT INTO leads (
+            nome, telefone, email, cep, logradouro, numero, complemento, bairro,
+            cidade, estado, interesse, vendedor, vendedor_id, origem, metadados_marketing
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb)
+        RETURNING *`,
         [lead.nome, lead.telefone, lead.email || null, lead.cep || null,
             lead.logradouro || null, lead.numero || null, lead.complemento || null,
             lead.bairro || null, lead.cidade || null, lead.estado || null,
-            lead.interesse || null, admin.nome, admin.id]
+            lead.interesse || null, admin.nome, admin.id, origemDoLead(lead.metadadosMarketing),
+            JSON.stringify(lead.metadadosMarketing)]
     );
     res.status(201).json({ mensagem: 'Lead cadastrado com sucesso.', lead: rows[0] });
 }));

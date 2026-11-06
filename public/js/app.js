@@ -4,6 +4,34 @@
 // CEP + FORMULÁRIO + LEADS + MODAL DE COBERTURA
 // =========================================================
 
+const DDE_UTM_FIELDS = [
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_content',
+    'utm_term'
+];
+
+function obterAtribuicaoMarketingDDE() {
+    const atribuicao = {};
+    const parametros = new URLSearchParams(window.location.search);
+
+    for (const campo of DDE_UTM_FIELDS) {
+        let valor = parametros.get(campo);
+        try {
+            if (valor && valor.trim()) {
+                sessionStorage.setItem(`dde_${campo}`, valor.trim().slice(0, 150));
+            } else {
+                valor = sessionStorage.getItem(`dde_${campo}`) || '';
+            }
+        } catch {
+            valor = valor || '';
+        }
+        if (valor && valor.trim()) atribuicao[campo] = valor.trim().slice(0, 150);
+    }
+    return atribuicao;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // =====================================================
@@ -925,7 +953,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     interesse:
                         campoInteresse?.value.trim() ||
-                        ''
+                        '',
+
+                    metadados_marketing:
+                        obterAtribuicaoMarketingDDE()
                 };
 
 

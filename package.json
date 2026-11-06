@@ -1,6 +1,6 @@
 {
     "name":  "dde-telecom",
-    "version":  "11.1.0",
+    "version":  "12.0.0",
     "description":  "Site e sistema de gestão comercial da DDE Telecom",
     "main":  "src/server.js",
     "scripts":  {

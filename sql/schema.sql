@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
     interesse varchar(100),
     status varchar(30) DEFAULT 'novo',
     origem varchar(50) DEFAULT 'site',
+    metadados_marketing jsonb NOT NULL DEFAULT '{}'::jsonb,
     criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     logradouro varchar(150),
     numero varchar(20),
@@ -92,6 +93,7 @@ ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS cep varchar(9);
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS interesse varchar(100);
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS status varchar(30) DEFAULT 'novo';
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS origem varchar(50) DEFAULT 'site';
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS metadados_marketing jsonb NOT NULL DEFAULT '{}'::jsonb;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS criado_em timestamp without time zone DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS logradouro varchar(150);
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS numero varchar(20);
@@ -112,6 +114,26 @@ DO $$ BEGIN
             FOREIGN KEY (vendedor_id) REFERENCES public.usuarios(id) ON DELETE SET NULL NOT VALID;
     END IF;
 END $$;
+
+CREATE TABLE IF NOT EXISTS public.meta_lead_imports (
+    meta_lead_id varchar(120) PRIMARY KEY,
+    page_id varchar(120) NOT NULL,
+    form_id varchar(120),
+    ad_id varchar(120),
+    adgroup_id varchar(120),
+    meta_created_time bigint,
+    status varchar(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'processing', 'processed', 'needs_review', 'failed')),
+    attempts integer NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+    next_attempt_at timestamp with time zone NOT NULL DEFAULT now(),
+    last_error_code varchar(80),
+    lead_id integer REFERENCES public.leads(id) ON DELETE SET NULL,
+    received_at timestamp with time zone NOT NULL DEFAULT now(),
+    processed_at timestamp with time zone,
+    updated_at timestamp with time zone NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_meta_lead_imports_pending
+    ON public.meta_lead_imports(status, next_attempt_at, received_at);
 
 -- Tabelas auxiliares mantidas do esquema original.
 CREATE TABLE IF NOT EXISTS public.clientes (
