@@ -2,6 +2,8 @@ node_modules/
 .env
 .env.*
 !.env.example
+.DS_Store
 npm-debug.log*
 backup*
 backups/
+dde_telecom_neon.sql
