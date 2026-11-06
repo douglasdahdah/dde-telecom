@@ -83,6 +83,9 @@ const modalEmail =
 const modalInteresse =
     document.getElementById('modal-interesse');
 
+const modalOrigem =
+    document.getElementById('modal-origem');
+
 const modalCep =
     document.getElementById('modal-cep');
 
@@ -978,6 +981,26 @@ function preencherModal(lead) {
         modalInteresse.textContent =
             lead.interesse ||
             'Não informado';
+    }
+
+
+    if (modalOrigem) {
+        let metadados = lead.metadados_marketing || {};
+        if (typeof metadados === 'string') {
+            try { metadados = JSON.parse(metadados); }
+            catch { metadados = {}; }
+        }
+        const nomesOrigem = {
+            site: 'Site',
+            vendedor: 'Cadastro do vendedor',
+            meta_ads: 'Anúncio Facebook/Instagram',
+            meta_social: 'Publicação Facebook/Instagram',
+            meta_lead_ads: 'Formulário Facebook/Instagram'
+        };
+        const origem = nomesOrigem[lead.origem] || lead.origem || 'Site';
+        const campanha = metadados.utm_campaign ||
+            (metadados.ad_id ? `anúncio ${metadados.ad_id}` : '');
+        modalOrigem.textContent = campanha ? `${origem} · ${campanha}` : origem;
     }
 
 
