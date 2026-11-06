@@ -1,0 +1,499 @@
+
+:root {
+    --azul-dde: #034b6d;
+    --azul-dde-2: #076f9c;
+    --verde-dde: #10b986;
+    --fundo-dde: #f2f7fa;
+}
+
+
+* {
+    box-sizing: border-box;
+}
+
+
+/* LOGIN */
+
+.login-vendedor-body {
+
+    min-height: 100vh;
+
+    margin: 0;
+
+    display: grid;
+
+    place-items: center;
+
+    padding: 24px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #edf7fb,
+            #f8fbfd 55%,
+            #ebf8f3
+        );
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    color: #173d52;
+}
+
+
+.login-vendedor-card {
+
+    width:
+        min(
+            440px,
+            100%
+        );
+
+    padding: 36px;
+
+    background: #fff;
+
+    border:
+        1px solid #d6e4eb;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 24px 70px
+        rgba(
+            3,
+            75,
+            109,
+            .14
+        );
+}
+
+
+.marca-login {
+
+    display: flex;
+
+    flex-direction: column;
+
+    margin-bottom: 28px;
+
+    color:
+        var(
+            --azul-dde
+        );
+}
+
+
+.marca-login strong {
+
+    font-size: 36px;
+
+    font-weight: 900;
+
+    line-height: 1;
+}
+
+
+.marca-login span {
+
+    margin-top: 5px;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+
+.etiqueta-login {
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    letter-spacing: 1.4px;
+
+    color:
+        var(
+            --verde-dde
+        );
+}
+
+
+.login-vendedor-card h1 {
+
+    margin:
+        7px 0 8px;
+
+    font-size: 30px;
+
+    color:
+        var(
+            --azul-dde
+        );
+}
+
+
+.descricao-login {
+
+    margin:
+        0 0 26px;
+
+    line-height: 1.55;
+
+    color: #617987;
+}
+
+
+.login-vendedor-card label {
+
+    display: block;
+
+    margin:
+        16px 0 7px;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+
+.login-vendedor-card input {
+
+    width: 100%;
+
+    height: 48px;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid #cbdce5;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    outline: none;
+}
+
+
+.login-vendedor-card input:focus {
+
+    border-color:
+        var(
+            --azul-dde-2
+        );
+
+    box-shadow:
+        0 0 0 3px
+        rgba(
+            7,
+            111,
+            156,
+            .09
+        );
+}
+
+
+.campo-senha {
+
+    position: relative;
+}
+
+
+.campo-senha input {
+
+    padding-right: 82px;
+}
+
+
+.campo-senha button {
+
+    position: absolute;
+
+    top: 7px;
+
+    right: 7px;
+
+    height: 34px;
+
+    border: 0;
+
+    background: transparent;
+
+    color:
+        var(
+            --azul-dde
+        );
+
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+
+.botao-entrar {
+
+    width: 100%;
+
+    height: 48px;
+
+    margin-top: 8px;
+
+    border: 0;
+
+    border-radius: 10px;
+
+    background:
+        var(
+            --azul-dde
+        );
+
+    color: #fff;
+
+    font-size: 15px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+
+.botao-entrar:hover {
+
+    background:
+        var(
+            --azul-dde-2
+        );
+}
+
+
+.login-mensagem {
+
+    min-height: 21px;
+
+    margin:
+        12px 0 0;
+
+    font-size: 13px;
+}
+
+
+.login-mensagem.erro {
+
+    color: #c93636;
+}
+
+
+.rodape-login {
+
+    display: block;
+
+    margin-top: 25px;
+
+    color: #78909c;
+}
+
+
+/* SITE VENDEDOR */
+
+.area-vendedor {
+
+    padding-top: 64px;
+}
+
+
+.barra-vendedor {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    z-index: 9999;
+
+    height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    padding:
+        0 24px;
+
+    background:
+        var(
+            --azul-dde
+        );
+
+    color: #fff;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    box-shadow:
+        0 7px 24px
+        rgba(
+            0,
+            0,
+            0,
+            .18
+        );
+}
+
+
+.barra-vendedor-marca {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+.barra-vendedor-marca strong {
+
+    font-size: 21px;
+}
+
+
+.barra-vendedor-marca span {
+
+    font-size: 13px;
+
+    opacity: .75;
+}
+
+
+.barra-vendedor-usuario {
+
+    margin-left: auto;
+
+    text-align: right;
+}
+
+
+.barra-vendedor-usuario small {
+
+    display: block;
+
+    font-size: 10px;
+
+    opacity: .72;
+}
+
+
+.barra-vendedor-usuario strong {
+
+    font-size: 14px;
+}
+
+
+#sair-vendedor {
+
+    padding:
+        9px 15px;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .38
+        );
+
+    border-radius: 9px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .1
+        );
+
+    color: #fff;
+
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.link-painel-vendedor {
+
+    padding: 8px 10px;
+
+    border: 1px solid rgba(255, 255, 255, .38);
+
+    border-radius: 9px;
+
+    color: #fff;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    text-decoration: none;
+}
+
+
+#sair-vendedor:hover {
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .2
+        );
+}
+
+
+@media (
+    max-width: 650px
+) {
+
+    .barra-vendedor {
+
+        padding:
+            0 8px;
+
+        gap: 8px;
+    }
+
+
+    .barra-vendedor-marca span {
+
+        display: none;
+    }
+
+
+    .barra-vendedor-usuario small {
+
+        display: none;
+    }
+
+
+    .barra-vendedor-usuario strong {
+
+        font-size: 12px;
+    }
+
+    .link-painel-vendedor {
+
+        padding: 7px 8px;
+
+        font-size: 11px;
+    }
+}

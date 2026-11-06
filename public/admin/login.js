@@ -1,179 +1,135 @@
-const loginForm = document.getElementById('loginForm');
-const emailInput = document.getElementById('email');
-const senhaInput = document.getElementById('senha');
-const btnEntrar = document.getElementById('btnEntrar');
-const mensagemLogin = document.getElementById('mensagemLogin');
-const toggleSenha = document.getElementById('toggleSenha');
+
+document.addEventListener(
+    'DOMContentLoaded',
+    ()=>{
+
+        const f=
+            document.getElementById('f');
+
+        const email=
+            document.getElementById('email');
+
+        const senha=
+            document.getElementById('senha');
+
+        const mostrar=
+            document.getElementById('mostrar');
+
+        const msg=
+            document.getElementById('msg');
 
 
-// =====================================================
-// MOSTRAR / OCULTAR SENHA
-// =====================================================
+        mostrar.onclick=
+            ()=>{
 
-toggleSenha.addEventListener('click', () => {
+                const a=
+                    senha.type==='text';
 
-    const senhaVisivel =
-        senhaInput.type === 'text';
+                senha.type=
+                    a
+                    ?
+                    'password'
+                    :
+                    'text';
 
-    senhaInput.type =
-        senhaVisivel
-            ? 'password'
-            : 'text';
-
-    toggleSenha.textContent =
-        senhaVisivel
-            ? 'Mostrar'
-            : 'Ocultar';
-
-    toggleSenha.setAttribute(
-        'aria-label',
-        senhaVisivel
-            ? 'Mostrar senha'
-            : 'Ocultar senha'
-    );
-});
+                mostrar.textContent=
+                    a
+                    ?
+                    'Mostrar'
+                    :
+                    'Ocultar';
+            };
 
 
-// =====================================================
-// LIMPAR MENSAGEM
-// =====================================================
+        f.onsubmit=
+            async e=>{
 
-function limparMensagem() {
+                e.preventDefault();
 
-    mensagemLogin.textContent = '';
-    mensagemLogin.className = 'login-message';
-}
+                msg.textContent=
+                    'Entrando...';
 
-
-// =====================================================
-// EXIBIR MENSAGEM
-// =====================================================
-
-function exibirMensagem(texto, tipo = 'erro') {
-
-    mensagemLogin.textContent = texto;
-    mensagemLogin.className =
-        `login-message ${tipo}`;
-}
+                msg.style.color=
+                    '#034b6d';
 
 
-// =====================================================
-// LOGIN
-// =====================================================
+                try{
 
-loginForm.addEventListener('submit', async (event) => {
+                    const r=
+                        await fetch(
+                            '/api/auth/login',
+                            {
+                                method:
+                                    'POST',
 
-    event.preventDefault();
+                                headers:{
+                                    'Content-Type':
+                                        'application/json'
+                                },
 
-    limparMensagem();
+                                body:
+                                    JSON.stringify({
+                                        email:
+                                            email.value.trim(),
+
+                                        senha:
+                                            senha.value
+                                    })
+                            }
+                        );
 
 
-    const email =
-        emailInput.value
-            .trim()
-            .toLowerCase();
-
-    const senha =
-        senhaInput.value;
+                    const d=
+                        await r.json();
 
 
-    if (!email || !senha) {
+                    if(!r.ok){
 
-        exibirMensagem(
-            'Informe o e-mail e a senha.'
-        );
+                        throw new Error(
+                            d.erro
+                            ||
+                            'Falha no login.'
+                        );
+                    }
 
-        return;
+
+                    if(
+                        d.usuario?.perfil!=='admin'
+                    ){
+
+                        throw new Error(
+                            'Este acesso é exclusivo para administradores.'
+                        );
+                    }
+
+
+                    localStorage.setItem(
+                        'dde_admin_token',
+                        d.token
+                    );
+
+
+                    localStorage.setItem(
+                        'dde_admin_usuario',
+                        JSON.stringify(
+                            d.usuario
+                        )
+                    );
+
+
+                    location.replace(
+                        '/admin/'
+                    );
+
+
+                }catch(err){
+
+                    msg.textContent=
+                        err.message;
+
+                    msg.style.color=
+                        '#c93636';
+                }
+            };
     }
-
-
-    btnEntrar.disabled = true;
-    btnEntrar.textContent = 'Entrando...';
-
-
-    try {
-
-        const resposta = await fetch(
-            '/api/auth/login',
-            {
-                method: 'POST',
-
-                headers: {
-                    'Content-Type':
-                        'application/json'
-                },
-
-                body: JSON.stringify({
-                    email,
-                    senha
-                })
-            }
-        );
-
-
-        const dados =
-            await resposta.json();
-
-
-        if (!resposta.ok) {
-
-            throw new Error(
-                dados.erro ||
-                'Não foi possível realizar o login.'
-            );
-        }
-
-
-        if (!dados.token) {
-
-            throw new Error(
-                'Token de autenticação não recebido.'
-            );
-        }
-
-
-        localStorage.setItem(
-            'dde_token',
-            dados.token
-        );
-
-
-        localStorage.setItem(
-            'dde_usuario',
-            JSON.stringify(
-                dados.usuario
-            )
-        );
-
-
-        exibirMensagem(
-            'Login realizado com sucesso.',
-            'sucesso'
-        );
-
-
-        setTimeout(() => {
-
-            window.location.href =
-                '/admin/';
-
-        }, 500);
-
-
-    } catch (erro) {
-
-        console.error(
-            'Erro no login:',
-            erro
-        );
-
-        exibirMensagem(
-            erro.message
-        );
-
-    } finally {
-
-        btnEntrar.disabled = false;
-        btnEntrar.textContent = 'Entrar';
-    }
-});
+);

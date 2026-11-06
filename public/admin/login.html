@@ -1,146 +1,180 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta charset="utf-8">
 
-    <title>Login | DDE Telecom</title>
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
 
-    <link
-        rel="stylesheet"
-        href="./login.css"
-    >
+<title>
+Administrador | DDE Telecom
+</title>
+
+<style>
+
+*{
+    box-sizing:border-box
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    background:#eef5f8;
+    font-family:Arial;
+    color:#123d52
+}
+
+.c{
+    width:min(
+        430px,
+        calc(100% - 32px)
+    );
+    background:#fff;
+    padding:34px;
+    border-radius:18px;
+    box-shadow:
+        0 20px 60px
+        rgba(3,75,109,.14)
+}
+
+h1{
+    color:#034b6d
+}
+
+.m{
+    font-size:30px;
+    font-weight:900;
+    color:#034b6d
+}
+
+label{
+    display:block;
+    margin:14px 0 6px;
+    font-weight:800;
+    font-size:13px
+}
+
+input{
+    width:100%;
+    height:48px;
+    border:1px solid #cbdce5;
+    border-radius:10px;
+    padding:0 12px;
+    font-size:14px
+}
+
+.s{
+    position:relative
+}
+
+.s input{
+    padding-right:84px
+}
+
+.s button{
+    position:absolute;
+    right:7px;
+    top:7px;
+    height:34px;
+    border:0;
+    background:transparent;
+    color:#034b6d;
+    font-weight:800;
+    cursor:pointer
+}
+
+.e{
+    width:100%;
+    height:48px;
+    border:0;
+    border-radius:10px;
+    background:#034b6d;
+    color:#fff;
+    font-weight:900;
+    font-size:15px;
+    cursor:pointer
+}
+
+.msg{
+    min-height:20px;
+    margin:12px 0;
+    font-size:13px
+}
+
+</style>
+
 </head>
 
 <body>
 
-    <main class="login-page">
+<main class="c">
 
-        <section class="login-card">
+<div class="m">
+DDE Telecom
+</div>
 
-            <div class="login-brand">
+<h1>
+Acesso do Administrador
+</h1>
 
-                <div class="logo-box">
-                    <span class="logo-dde">DDE</span>
-                    <span class="logo-telecom">Telecom</span>
-                </div>
+<form id="f">
 
-                <div class="brand-text">
+<label>
+E-mail
+</label>
 
-                    <span class="brand-tag">
-                        PAINEL COMERCIAL
-                    </span>
+<input
+    id="email"
+    type="email"
+    autocomplete="username"
+    required
+>
 
-                    <h1>
-                        Bem-vindo
-                    </h1>
+<label>
+Senha
+</label>
 
-                    <p>
-                        Acesse o sistema de gestão comercial
-                        da DDE Telecom.
-                    </p>
+<div class="s">
 
-                </div>
+<input
+    id="senha"
+    type="password"
+    autocomplete="current-password"
+    required
+>
 
-            </div>
+<button
+    id="mostrar"
+    type="button"
+>
+Mostrar
+</button>
 
+</div>
 
-            <form
-                id="loginForm"
-                class="login-form"
-            >
+<p
+    id="msg"
+    class="msg"
+></p>
 
-                <div class="form-group">
+<button
+    class="e"
+    type="submit"
+>
+Entrar
+</button>
 
-                    <label for="email">
-                        E-mail
-                    </label>
+</form>
 
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="seuemail@ddetelecom.com.br"
-                        autocomplete="username"
-                        required
-                    >
+</main>
 
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="senha">
-                        Senha
-                    </label>
-
-                    <div class="password-wrapper">
-
-                        <input
-                            type="password"
-                            id="senha"
-                            name="senha"
-                            placeholder="Digite sua senha"
-                            autocomplete="current-password"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            id="toggleSenha"
-                            class="toggle-password"
-                            aria-label="Mostrar senha"
-                        >
-                            Mostrar
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="mensagemLogin"
-                    class="login-message"
-                    aria-live="polite"
-                ></div>
-
-
-                <button
-                    type="submit"
-                    id="btnEntrar"
-                    class="btn-login"
-                >
-                    Entrar
-                </button>
-
-            </form>
-
-
-            <div class="login-footer">
-
-                <span>
-                    DDE Telecom
-                </span>
-
-                <small>
-                    Gestão Comercial
-                </small>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <script src="./login.js"></script>
+<script src="/admin/login.js?v=3001"></script>
 
 </body>
-
 </html>

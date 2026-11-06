@@ -15,6 +15,7 @@
         rel="stylesheet"
         href="/admin/admin.css?v=21"
     >
+<link rel="stylesheet" href="/admin/usuarios.css?v=1">
 </head>
 
 <body>
@@ -62,7 +63,8 @@
                 Ver site
             </a>
 
-        </nav>
+        <a href="/admin/usuarios.html"><span>♙</span> Usuários/Vendedores</a>
+</nav>
 
         <div class="sidebar-rodape">
             DDE Telecom
@@ -420,7 +422,14 @@
                  ACOMPANHAMENTO
             ================================================== -->
 
-            <div class="gestao-comercial">
+            <section class="gestao-comercial" id="atribuicao">
+    <label for="responsavel-lead">Responsável pelo lead</label>
+    <p id="responsavel-atual"></p>
+    <select id="responsavel-lead" aria-label="Selecionar responsável"></select>
+    <button type="button" class="botao-salvar-comercial" id="atribuir-lead">Atribuir responsável</button>
+    <p id="mensagem-atribuicao" role="status"></p>
+</section>
+<div class="gestao-comercial">
 
                 <div class="titulo-bloco">
 
@@ -570,8 +579,9 @@
     </div>
 
 
-    <script src="/admin/admin.js?v=22"></script>
+    <script src="/admin/admin.js?v=3001"></script>
 
+<script src="/admin/atribuicao.js?v=3001"></script>
 </body>
 
 </html>

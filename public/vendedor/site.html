@@ -1,0 +1,188 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="DDE Telecom — Internet Fibra, Controle e Pós-pago com atendimento especializado.">
+<title>Área do Vendedor | DDE Telecom</title>
+<link rel="stylesheet" href="/css/site.css?v=1100">
+
+
+<link rel="stylesheet" href="/vendedor/vendedor.css?v=1101">
+</head>
+<body class="area-vendedor">
+
+<header class="barra-vendedor">
+
+    <div class="barra-vendedor-marca">
+
+        <strong>
+            DDE Telecom
+        </strong>
+
+        <span>
+            Área do Vendedor
+        </span>
+
+    </div>
+
+    <div class="barra-vendedor-usuario">
+
+        <small>
+            Vendedor logado
+        </small>
+
+        <strong id="nome-vendedor-logado">
+            Carregando...
+        </strong>
+
+    </div>
+
+    <a class="link-painel-vendedor" href="/vendedor/painel.html">Meus leads</a>
+
+    <button
+        id="sair-vendedor"
+        type="button"
+    >
+        Sair
+    </button>
+
+</header>
+
+<section class="hero-art" id="inicio">
+  <img src="/images/hero-dde-v10-aprovado.png" alt="DDE Telecom — Mais conexão para o que realmente importa.">
+  <nav class="hero-links" aria-label="Menu principal">
+    <a class="hot h-inicio" href="#inicio" aria-label="Início"></a>
+    <a class="hot h-internet" href="#planos" data-tipo-menu="internet" aria-label="Internet Fibra"></a>
+    <a class="hot h-controle" href="#planos" data-tipo-menu="controle" aria-label="Controle"></a>
+    <a class="hot h-pos" href="#planos" data-tipo-menu="pos" aria-label="Pós-pago"></a>
+    <a class="hot h-atendimento" href="#atendimento" aria-label="Atendimento"></a>
+    <a class="hot h-whatsapp" href="https://wa.me/5534996557353?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20DDE%20Telecom." target="_blank" rel="noopener" aria-label="WhatsApp"></a>
+    <button class="hot h-cep" id="abrir-consulta-cep" type="button" aria-label="Consultar cobertura"></button>
+    <a class="hot h-planos" href="#planos" aria-label="Ver planos"></a>
+  </nav>
+</section>
+
+<main>
+<section class="planos" id="planos">
+ <div class="wrap">
+  <header class="sec-title">
+   <span>ESCOLHA O SEU PLANO</span>
+   <h1>Conecte do seu jeito.</h1>
+   <p>Internet Fibra, Controle e Pós-pago com atendimento especializado DDE Telecom.</p>
+  </header>
+  <div class="abas-planos">
+   <button type="button" class="aba-plano ativa" data-tipo="internet">⌁ &nbsp; Internet Fibra</button>
+   <button type="button" class="aba-plano" data-tipo="controle">☎ &nbsp; Controle</button>
+   <button type="button" class="aba-plano" data-tipo="pos">▥ &nbsp; Pós-pago</button>
+  </div>
+  <div id="lista-planos" class="lista-planos"><p class="loading-plans">Carregando planos...</p></div>
+
+  <div class="cep-bar">
+   <div><small>COBERTURA</small><strong>Consulte a disponibilidade na sua região</strong><span>Informe seu CEP e encontre seu endereço em poucos segundos.</span></div>
+   <div class="cep-search"><input id="cep-consulta-rapida" maxlength="9" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"><button type="button" id="consultar-cep-rapido">Consultar →</button></div>
+   <p><b>✓</b> Rápido, gratuito<br>e sem compromisso.</p>
+  </div>
+ </div>
+</section>
+
+<section class="premium-lower clean-lower">
+  <div class="beneficios-clean">
+    <div class="benef-intro">
+      <small>MAIS QUE INTERNET</small>
+      <h2>Conexão que aproxima você <em>do que importa.</em></h2>
+      <p>Tecnologia, pessoas e soluções para uma vida melhor.</p>
+      <a href="#planos">Conheça nossos planos →</a>
+    </div>
+
+    <article class="clean-card">
+      <div class="clean-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.8 8.9a14.2 14.2 0 0 1 18.4 0"/><path d="M5.9 12.2a9.5 9.5 0 0 1 12.2 0"/><path d="M9.1 15.5a4.8 4.8 0 0 1 5.8 0"/><circle cx="12" cy="19" r="1.2"/></svg></div>
+      <h3>Fibra de verdade</h3>
+      <p>Mais estabilidade para toda a sua casa.</p>
+    </article>
+    <article class="clean-card">
+      <div class="clean-icon orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.7l8.5 6.8"/><path d="M5.5 9.4v10h13v-10"/><path d="M9.2 19.4v-6h5.6v6"/></svg></div>
+      <h3>Casa conectada</h3>
+      <p>Wi-Fi para todos os ambientes, sem quedas.</p>
+    </article>
+    <article class="clean-card">
+      <div class="clean-icon blue" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.4"/><path d="M3.5 19c.4-4 2.4-6 5.5-6s5.1 2 5.5 6"/><path d="M14 14c3.7-.7 6 1.1 6.5 4.7"/></svg></div>
+      <h3>Atendimento humano</h3>
+      <p>Você fala com a gente. Sem robôs.</p>
+    </article>
+    <article class="clean-card">
+      <div class="clean-icon orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13.2 2.8-7 10h5.4l-.8 8.4 7-11h-5.3z"/></svg></div>
+      <h3>Contratação simples</h3>
+      <p>Tudo online, rápido e sem complicação.</p>
+    </article>
+  </div>
+
+  <section class="contact-clean" id="atendimento">
+    <div class="contact-copy approved-contact-art" aria-label="Atendimento DDE Telecom">
+      <a class="approved-whatsapp-hit"
+         href="https://wa.me/5534996557353?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20DDE%20Telecom%20e%20gostaria%20de%20atendimento."
+         target="_blank" rel="noopener"
+         aria-label="Falar pelo WhatsApp com a DDE Telecom"></a>
+    </div>
+
+    <div class="form-clean">
+      <div class="form-clean-head">
+        <div>
+          <small>●</small>
+          <h3>Seus dados</h3>
+          <p>Preencha os campos abaixo e entraremos em contato em breve.</p>
+        </div>
+        <span>◷ Atendimento em horário comercial<br><small>Segunda a sexta, das 8h às 18h.</small></span>
+      </div>
+
+      <form id="form-lead" class="sales-form-clean">
+        <label>Nome completo *<input id="nome" autocomplete="name" placeholder="Seu nome" required></label>
+        <label>WhatsApp *<input id="telefone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000" required></label>
+        <label>E-mail<input id="email" type="email" autocomplete="email" placeholder="seu@email.com"></label>
+        <label>CEP *<input id="cep" maxlength="9" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" required></label>
+        <label class="wide">Endereço<input id="logradouro" autocomplete="street-address" placeholder="Será preenchido automaticamente"></label>
+        <label>Número<input id="numero" placeholder="Nº" required></label>
+        <label>Complemento<input id="complemento" placeholder="Apto, bloco, etc."></label>
+        <label>Bairro<input id="bairro" placeholder="Será preenchido automaticamente"></label>
+        <label>Cidade<input id="cidade" placeholder="Será preenchido"></label>
+        <label>UF<input id="estado" maxlength="2" placeholder="UF"></label>
+        <input id="interesse" type="hidden">
+        <button class="submit-clean full" type="submit">➤ &nbsp; Quero falar com um especialista →</button>
+        <p id="mensagem-form" class="full"></p>
+        <small class="privacy-clean full">🔒 Seus dados são utilizados somente para atendimento da sua solicitação.</small>
+      </form>
+    </div>
+  </section>
+
+  <div class="trust-clean">
+    <div class="trust-brand"><strong>DDE</strong><span>Telecom</span><i></i><b>Algar›</b><small>PARCEIRA COMERCIAL</small></div>
+    <p><b>★</b><span>A mesma qualidade Algar<br>que milhões já conhecem</span></p>
+    <p><b>◆</b><span>Seus dados protegidos<br>e uso responsável</span></p>
+    <p><b>◎</b><span>Atendimento de verdade<br>com especialistas</span></p>
+    <p><b>♥</b><span>Mais internet para o que<br>realmente importa</span></p>
+  </div>
+</section>
+</main>
+
+
+<div class="modal-cep" id="modal-cep" aria-hidden="true">
+ <div class="modal-cep-fundo"></div>
+ <div class="modal-cep-caixa" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-cep">
+  <button type="button" class="fechar-modal-cep" id="fechar-modal-cep">×</button>
+  <span class="modal-cep-etiqueta">DDE TELECOM</span>
+  <h2 id="titulo-modal-cep">Consulte sua cobertura</h2>
+  <p>Informe seu CEP para localizar o endereço e iniciar o atendimento.</p>
+  <label for="cep-consulta">CEP</label>
+  <div class="modal-cep-linha"><input id="cep-consulta" maxlength="9" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"><button type="button" id="consultar-cep-modal">Consultar</button></div>
+  <p id="mensagem-consulta-cep"></p>
+  <div class="resultado-cep" id="resultado-cep"><div class="resultado-cep-check">✓</div><div><small>Endereço localizado</small><strong id="resultado-logradouro"></strong><span id="resultado-localidade"></span></div></div>
+  <button type="button" id="continuar-com-endereco" class="continuar-com-endereco">Continuar atendimento →</button>
+  <small class="aviso-cobertura">A localização do endereço não representa confirmação de cobertura ou disponibilidade técnica.</small>
+ </div>
+</div>
+
+<script src="/vendedor/vendedor.js?v=300"></script>
+<script src="/js/app.js?v=1100"></script>
+<script src="/js/planos.js?v=1100"></script>
+</body>
+</html>
