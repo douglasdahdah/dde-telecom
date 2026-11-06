@@ -10,7 +10,7 @@ A estrutura do banco Neon foi conferida em modo de leitura. Nenhuma alteração 
 
 ## Se outra pessoa cuida da hospedagem
 
-Envie o arquivo `DDE-Telecom-V11.1-corrigido.zip` e esta mensagem:
+Envie o arquivo ZIP desta versão e esta mensagem:
 
 > Atualize o site da DDE Telecom usando este pacote. Antes, faça cópia de segurança do site e do banco Neon. Preserve as configurações privadas que já existem no Render. Confira se o esquema SQL precisa ser aplicado; não apague nem recrie tabelas. Depois, confirme o site, o login do administrador, o acesso individual dos vendedores e a identificação do responsável em cada lead.
 
