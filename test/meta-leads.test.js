@@ -28,6 +28,7 @@ test('extrai somente notificações leadgen da página configurada', () => {
                 id: 'page-123',
                 changes: [
                     { field: 'leadgen', value: { leadgen_id: 'lead-1', form_id: 'form-1', ad_id: 'ad-1', created_time: 1700000000 } },
+                    { field: 'leadgen', value: { leadgen_id: 'lead-3', page_id: 'page-456' } },
                     { field: 'feed', value: { id: 'post-1' } }
                 ]
             },

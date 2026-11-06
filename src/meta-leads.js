@@ -40,7 +40,8 @@ function parseLeadgenEvents(payload, expectedPageId = '') {
             const value = change.value;
             const leadgenId = idString(value.leadgen_id || value.id);
             const pageId = idString(value.page_id || entryPageId);
-            if (!leadgenId || !pageId) continue;
+            if (!leadgenId || !entryPageId || !pageId || pageId !== entryPageId) continue;
+            if (expectedPageId && pageId !== expectedPageId) continue;
 
             const createdTime = Number(value.created_time);
             events.push({
