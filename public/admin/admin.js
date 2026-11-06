@@ -8,7 +8,7 @@
 // SESSÃO
 // =====================================================
 
-const token = localStorage.getItem('dde_token');
+const token = (localStorage.getItem('dde_admin_token') || localStorage.getItem('dde_admin_token'));
 
 if (!token) {
     window.location.replace('/admin/login.html');
@@ -148,8 +148,8 @@ function headersAutenticados() {
 
 function encerrarSessao() {
 
-    localStorage.removeItem('dde_token');
-    localStorage.removeItem('dde_usuario');
+    localStorage.removeItem('dde_admin_token');
+    localStorage.removeItem('dde_admin_usuario');
 
     window.location.replace(
         '/admin/login.html'
@@ -241,7 +241,7 @@ async function validarSessao() {
 
 
         localStorage.setItem(
-            'dde_usuario',
+            'dde_admin_usuario',
             JSON.stringify(usuario)
         );
 

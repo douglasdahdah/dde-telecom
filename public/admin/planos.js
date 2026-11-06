@@ -8,7 +8,7 @@
 // =====================================================
 
 const token =
-    localStorage.getItem('dde_token');
+    (localStorage.getItem('dde_admin_token') || localStorage.getItem('dde_admin_token'));
 
 
 if (!token) {
@@ -222,11 +222,11 @@ function headersAutenticados() {
 function logout() {
 
     localStorage.removeItem(
-        'dde_token'
+        'dde_admin_token'
     );
 
     localStorage.removeItem(
-        'dde_usuario'
+        'dde_admin_usuario'
     );
 
     window.location.replace(
