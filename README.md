@@ -6,7 +6,8 @@ Você não precisa instalar o ZIP nem executar comandos. Guarde-o como cópia da
 ## Atualização de 07/11/2026
 
 - Visual renovado, com letras maiores, apresentação mais curta, ofertas e formulário de atendimento.
-- Tons de laranja e âmbar nos botões e destaques, com formulário mais estreito e campos compactos. Os campos de contato e endereço continuam disponíveis.
+- Composição clara e contemporânea em azul, verde e laranja, com o logotipo aprovado. Formulário mais estreito e campos compactos; os campos de contato e endereço continuam disponíveis.
+- O site mostra apenas “Atendimento comercial”, sem dias ou horários.
 - WhatsApp comercial: **(34) 99644-0163**. Marca parceira: **Algar**.
 - Os dois links comerciais que saíam do site para a loja da Algar foram removidos.
 - Preços comparados com a loja oficial, selecionando **Uberaba/MG**. Condições de promoção e fidelidade aparecem nos cards; a equipe confirma a contratação para cada cliente.
