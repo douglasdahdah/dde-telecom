@@ -32,6 +32,40 @@ function metaConfig() {
     };
 }
 
+
+async function ensureMetaPageSubscription(config) {
+    if (!config.pageId || !config.pageAccessToken ||
+        !validateGraphApiVersion(config.graphApiVersion)) return false;
+
+    const url = new URL(
+        `https://graph.facebook.com/${config.graphApiVersion}/${encodeURIComponent(config.pageId)}/subscribed_apps`
+    );
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${config.pageAccessToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ subscribed_fields: 'leadgen' }),
+            signal: AbortSignal.timeout(10000)
+        });
+        let result = {};
+        try { result = await response.json(); } catch {}
+        if (!response.ok || result?.success !== true) {
+            const apiCode = Number(result?.error?.code);
+            const reason = Number.isSafeInteger(apiCode) ? `Meta ${apiCode}` : `HTTP ${response.status}`;
+            console.error(`Inscrição de avisos de leads da Página recusada (${reason}).`);
+            return false;
+        }
+        console.log('Avisos de novos leads da Página DDE Telecom estão inscritos.');
+        return true;
+    } catch {
+        console.error('Não foi possível confirmar a inscrição de avisos de leads da Página (meta_network_error).');
+        return false;
+    }
+}
+
 function equalSecret(a, b) {
     if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
     const left = Buffer.from(a);
@@ -240,6 +274,7 @@ function registerMetaIntegration(app, pool) {
     });
 
     setImmediate(() => processMetaQueue(pool));
+    setImmediate(() => ensureMetaPageSubscription(metaConfig()));
 }
 
 module.exports = { registerMetaIntegration };
