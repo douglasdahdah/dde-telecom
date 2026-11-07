@@ -76,10 +76,10 @@ function montarCardPlano(p) {
   card.innerHTML = '<div class="plano-selo">' + esc(selo) + '</div><div class="plano-card-conteudo">' +
     '<div class="plano-main"><div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
     '<div class="plano-velocidade' + (velocidade.unidade ? '' : ' ilimitado') + '"><strong>' + esc(velocidade.numero) + '</strong><span>' + esc(velocidade.unidade) + '</span></div>' +
-    '<p class="plano-descricao">' + esc(p.descricao || p.nome) + '</p>' +
+    '<p class="plano-descricao">' + esc(combo ? p.nome : p.descricao || p.nome) + '</p>' +
     '<div class="plano-preco" aria-label="' + esc(Number(p.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + ' por mês"><small>R$</small><strong>' + Number(preco[0]).toLocaleString('pt-BR') + '</strong><b>,' + preco[1] + '</b><span>/mês</span></div>' +
-    '<p class="plano-price-context">Consulte as condições abaixo</p></div>' +
-    '<ul class="plano-beneficios">' + beneficios.map(b => '<li>' + iconePlano('check') + '<span>' + esc(b) + '</span></li>').join('') + '</ul>' +
+    '</div>' +
+    '<details class="plano-detalhes"><summary>O que está incluído</summary><ul class="plano-beneficios">' + beneficios.map(b => '<li>' + iconePlano('check') + '<span>' + esc(b) + '</span></li>').join('') + '</ul></details>' +
     '<p class="plano-condicoes">' + esc(condicoes) + '</p>' +
     '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) + '" aria-label="Quero conhecer ' + esc(p.nome) + '">Quero esse plano ' + iconePlano('arrow') + '</button>' +
     '<p class="plano-fidelidade">' + (p.fidelidade_meses ? 'Fidelidade de ' + Number(p.fidelidade_meses) + ' meses.' : 'Condições confirmadas no atendimento.') + '</p></div>';

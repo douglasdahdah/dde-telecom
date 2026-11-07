@@ -1,32 +1,35 @@
-# DDE Telecom V12
+﻿# DDE Telecom — site e CRM
 
-Este pacote acompanha a atualização do site e do sistema comercial da DDE Telecom.
+O site está publicado em https://dde-telecom.onrender.com.
+Você não precisa instalar o ZIP nem executar comandos. Guarde-o como cópia da versão entregue.
 
-## Situação atual
+## Atualização de 07/11/2026
 
-A V12 já está publicada em https://dde-telecom.onrender.com. A estrutura necessária foi atualizada e conferida no banco Neon. Os leads que já existiam foram preservados.
+- Visual renovado, com letras maiores, apresentação mais curta, ofertas e formulário de atendimento.
+- WhatsApp comercial: **(34) 99644-0163**. Marca parceira: **Algar**.
+- Os dois links comerciais que saíam do site para a loja da Algar foram removidos.
+- Preços comparados com a loja oficial, selecionando **Uberaba/MG**. Condições de promoção e fidelidade aparecem nos cards; a equipe confirma a contratação para cada cliente.
+- Ofertas exclusivas do site da operadora não foram incluídas. A consulta pública não substitui uma tabela comercial específica de credenciadas.
+- Leads, usuários, acessos de vendedores e integração Meta foram preservados. A atualização do catálogo modificou somente os planos, mantendo os antigos inativos para preservar o histórico.
 
-Você não precisa instalar este pacote nem executar comandos no banco. Guarde o ZIP como cópia da versão entregue. O ZIP original também foi preservado.
+## Recebimento de contatos
 
-## O que foi atualizado
+O formulário identifica o plano escolhido e os parâmetros de campanha do link de entrada. A integração de formulários instantâneos da Meta foi verificada anteriormente com um lead sintético da ferramenta oficial, recebido no CRM. Isso não equivale ao teste de uma campanha paga real.
 
-- O formulário do site registra a campanha de origem quando alguém chega por um link de divulgação com identificação da campanha.
-- O sistema está preparado para receber leads dos formulários instantâneos do Facebook e Instagram.
-- O site mostra o aviso de privacidade em https://dde-telecom.onrender.com/privacidade.html.
-- O Instagram @ddetelecom.algar aparece conectado ao Metricool.
+O formulário do site também foi conferido em uma prévia local com destino simulado; esse teste local não gravou novos contatos no Neon. Nenhuma campanha paga foi iniciada por esta atualização.
 
-## O que falta para os formulários instantâneos
+## Cópia de segurança
 
-A conexão do Instagram ao Metricool permite trabalhar com publicações e métricas nessa plataforma. Sozinha, ela não dá ao CRM acesso aos formulários de leads da Meta.
+O ZIP contém o código e um `.env.example` sem senhas. Ele não contém o banco de dados nem as chaves privadas do Render. O ZIP original deve continuar guardado.
 
-Para receber esses leads no sistema, a pessoa que administra a Página do Facebook e a conta comercial da Meta precisa autorizar a integração do CRM. Depois, as configurações de acesso devem ser guardadas diretamente no Render por alguém responsável pela hospedagem. Não envie senhas ou códigos pelo chat, e não coloque segredos no GitHub ou neste ZIP.
+Antes de uma alteração futura, a pessoa responsável deve guardar uma cópia do código, conferir o ponto de recuperação do Neon e preservar os segredos existentes no Render. Não apague ou recrie o banco. Não execute novamente o esquema inicial em um banco que já tem dados.
 
-Até essa autorização ser concluída, o formulário do próprio site continua sendo o caminho ativo para receber contatos.
+## Para quem for cuidar da hospedagem
 
-## Se alguém for cuidar da hospedagem no futuro
+O serviço existente no Render usa `npm install` para preparar o projeto e `node src/server.js` para iniciar. As configurações privadas permanecem no Render. O arquivo `.env.example` descreve as variáveis; ele não deve ser preenchido com credenciais no GitHub ou em pacotes compartilhados.
 
-Entregue este ZIP à pessoa responsável pelo site. Peça que ela faça uma cópia de segurança antes de qualquer mudança e preserve as configurações privadas que já existem no Render. Ela não deve apagar ou recriar o banco Neon.
+As mudanças de catálogo estão em `sql/migrations/2026-11-07-ofertas-uberaba.sql` e já foram aplicadas ao ambiente publicado após a conferência em uma ramificação separada do Neon. Não é necessário executá-las novamente. O arquivo não exclui leads ou usuários.
 
 ## Conferências
 
-As verificações de código e os testes locais passaram. A página e o aviso de privacidade foram abertos no site publicado. Ainda não foi enviado um formulário real da Meta para testar a entrada de um lead. Nenhum anúncio ou publicação foi criado por esta atualização.
+Verificações de sintaxe passaram. Preços e links foram conferidos no site publicado. A revisão de apresentação não altera autenticação, permissões ou processamento de leads. Para reverter a apresentação, publique o commit anterior; não restaure um banco antigo por causa de uma alteração visual.

@@ -14,3 +14,78 @@
 @media(min-width:621px) and (max-width:1000px){.lista-planos{grid-template-columns:repeat(2,minmax(0,1fr))}.plano-condicoes{font-size:14px}.plano-beneficios li{font-size:16px}.plano-descricao{font-size:17px}.plano-card-conteudo{padding:26px}.plano-velocidade strong{font-size:57px}.plano-preco strong{font-size:49px}}
 .lista-planos.single{grid-template-columns:minmax(0,420px);justify-content:center}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+
+/* Página compacta: apresentação, ofertas e atendimento. */
+.section{padding:52px 0}
+.hero,.hero-content{min-height:460px}
+.hero-content{padding-top:42px;padding-bottom:42px}
+.hero h1{font-size:clamp(48px,5.2vw,68px);margin-bottom:18px}
+.hero p{font-size:20px;line-height:1.5;max-width:490px;margin-bottom:24px}
+.hero .eyebrow{margin-bottom:16px}
+.hero-assurance{margin-top:18px}
+.section-heading{margin-bottom:24px;gap:30px}
+.section-heading h2{font-size:clamp(34px,3.5vw,46px)}
+.section-heading .eyebrow{margin-bottom:12px}
+.abas-planos{margin:24px auto}
+.lista-planos{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.plano-card.combo{grid-column:auto}
+.plano-card-conteudo,.combo .plano-card-conteudo{display:flex;padding:23px;gap:0}
+.plano-category{margin-bottom:10px}
+.plano-velocidade{min-height:0;margin-bottom:12px}
+.plano-velocidade strong{font-size:54px}
+.plano-velocidade.ilimitado strong{font-size:37px}
+.plano-descricao{min-height:52px;font-size:16px;line-height:1.45;margin-bottom:16px}
+.plano-preco strong{font-size:49px}
+.plano-detalhes{margin:15px 0;border-top:1px solid var(--line);padding-top:12px}
+.plano-detalhes summary{cursor:pointer;font-size:15px;font-weight:700;color:#087964}
+.plano-detalhes .plano-beneficios,.combo .plano-detalhes .plano-beneficios{margin:13px 0 0;padding:0;border:0;gap:8px}
+.plano-detalhes .plano-beneficios li{font-size:15px}
+.plano-condicoes,.combo .plano-condicoes{font-size:14px;line-height:1.45;margin-bottom:16px;padding:12px}
+.plano-fidelidade{margin-top:10px}
+.offer-note{margin-top:20px;font-size:13px}
+.contact-grid{gap:50px}
+.contact-copy{padding-top:15px}
+.contact-copy h2{font-size:clamp(34px,3.6vw,46px)}
+.contact-copy>p{font-size:19px;margin:22px 0}
+.contact-hours{margin-top:24px;font-size:14px}
+.contact-questions{margin-top:28px;border-top:1px solid #ffffff30;padding-top:19px;color:#d6e6ec}
+.contact-questions summary{cursor:pointer;font-size:17px;font-weight:700}
+.contact-questions p{font-size:15px;line-height:1.6;margin:16px 0 0}
+.form-clean{padding:28px}
+.form-clean>p{margin-bottom:18px}
+.sales-form-clean{gap:14px 13px}
+.sales-form-clean input,.sales-form-clean select{padding:11px 12px;min-height:48px}
+.site-footer{padding-top:32px}
+.footer-top{padding-bottom:24px;gap:30px}
+.footer-top p{margin-bottom:0}
+.footer-bottom{padding-top:17px;padding-bottom:22px}
+@media(min-width:1200px){.lista-planos{grid-template-columns:repeat(4,minmax(0,1fr))}.plano-card-conteudo,.combo .plano-card-conteudo{padding:22px 20px}.plano-velocidade strong{font-size:49px}.plano-descricao{min-height:70px}}
+@media(max-width:850px){.hero,.hero-content{min-height:440px}.contact-grid{gap:30px}.contact-copy{position:static;padding-top:0}.contact-copy>p{max-width:600px}.footer-bottom{padding-bottom:75px}}
+@media(max-width:620px){
+ .section{padding:36px 0}
+ .hero,.hero-content{min-height:470px}
+ .hero-content{padding-top:32px;padding-bottom:35px;align-items:center}
+ .hero h1{font-size:46px;margin-bottom:16px}
+ .hero p{font-size:18px;line-height:1.45;margin-bottom:20px;max-width:320px}
+ .hero-photo{height:100%;object-position:71% center;opacity:.46}
+ .hero:after{background:linear-gradient(90deg,#031b30f5,#031b30c9 48%,#031b3030)}
+ .hero-actions{gap:9px}.hero-actions .btn{font-size:14px;min-height:48px;padding:13px 16px}
+ .hero-assurance{font-size:11px;margin-top:17px}
+ .section-heading h2{font-size:34px}.section-heading>p{font-size:17px;margin-top:15px}
+ .abas-planos{margin:20px auto}.aba-plano{padding:12px 7px}
+ .lista-planos{grid-template-columns:1fr;gap:16px}
+ .plano-card-conteudo,.combo .plano-card-conteudo{padding:22px}
+ .plano-selo{min-height:34px;padding:8px 12px;font-size:11px}
+ .plano-velocidade strong{font-size:51px}.plano-velocidade span{font-size:23px}
+ .plano-descricao{min-height:0;font-size:16px;line-height:1.45;margin-bottom:14px}
+ .plano-preco strong{font-size:49px}.plano-preco b{font-size:27px}.plano-preco small{font-size:18px}
+ .plano-condicoes{font-size:14px;padding:12px}
+ .plano-card .btn{min-height:49px;padding:14px;font-size:16px}
+ .plano-fidelidade{font-size:13px}
+ .contact-copy h2{font-size:35px}.contact-copy>p{font-size:18px;margin:18px 0}
+ .contact-copy>.btn{font-size:19px}.contact-hours{margin-top:19px}
+ .contact-questions{margin-top:20px}
+ .form-clean{padding:23px 20px}.form-clean h3{font-size:26px}
+ .sales-form-clean{gap:13px 11px}
+ .footer-top{grid-template-columns:1fr;gap:23px}.footer-top a:not(.footer-brand){font-size:15px}
+}
