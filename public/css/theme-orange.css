@@ -1,0 +1,86 @@
+:root {
+  --orange: #ff942e;
+  --orange-light: #ffbc75;
+  --orange-pale: #fff1e4;
+  --orange-ink: #9c4209;
+}
+
+.top-note { background: var(--orange-pale); color: #713c1d; }
+.top-note b, .top-note .icon { color: #b84c08; }
+.main-nav a:hover { color: var(--orange-light); }
+.btn-mint {
+  background: linear-gradient(110deg, var(--orange), var(--orange-light));
+  color: #172f3e;
+  box-shadow: 0 6px 18px #ff942e1c;
+}
+.btn-mint:hover { background: linear-gradient(110deg, #ffab54, #ffc58c); }
+.hero h1 em, .contact-copy h2 em { color: var(--orange-light); }
+.hero .eyebrow, .contact-copy > .eyebrow { color: #ffcf9d; }
+.live-dot { background: var(--orange); box-shadow: 0 0 0 5px #ff942e20; }
+.hero-assurance .icon, .contact-hours .icon { color: var(--orange-light); }
+.eyebrow.dark, .form-kicker { color: var(--orange-ink); }
+.section-heading h2 em, .modal-cep h2 em { color: #ac4b0b; }
+.abas-planos { background: #f2e9df; }
+.aba-plano.ativa .icon { color: var(--orange-light); }
+.plano-card.destaque { border-color: #ef8b32; }
+.plano-selo { background: var(--orange-pale); color: #87400f; }
+.destaque .plano-selo {
+  background: linear-gradient(110deg, var(--orange), var(--orange-light));
+  color: #462700;
+}
+.plano-category .icon, .plano-beneficios .icon { color: #b95311; }
+.plano-detalhes summary, .privacy-clean a { color: var(--orange-ink); }
+.plano-condicoes { background: #fff6ed; }
+.floating-contact {
+  background: linear-gradient(110deg, var(--orange), var(--orange-light));
+  border-color: #ffc68f;
+  color: #172f3e;
+}
+.footer-brand span, .footer-top a:hover { color: var(--orange-light); }
+
+/* Formulário menor, com campos legíveis e área de toque preservada. */
+.contact-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+  gap: 64px;
+  align-items: center;
+}
+.contact-copy { position: static; padding-top: 0; max-width: 520px; }
+.form-clean {
+  width: 100%;
+  max-width: 480px;
+  justify-self: end;
+  padding: 23px;
+  border-top: 4px solid var(--orange);
+  border-radius: 20px;
+}
+.form-clean h3 { font-size: 25px; margin: 8px 0; }
+.form-clean > p { font-size: 15px; line-height: 1.5; margin-bottom: 16px; }
+.sales-form-clean { gap: 10px 12px; }
+.sales-form-clean label { font-size: 14px; gap: 5px; }
+.sales-form-clean input, .sales-form-clean select {
+  min-height: 44px;
+  padding: 9px 11px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.sales-form-clean input:focus-visible, .sales-form-clean select:focus-visible {
+  outline: 2px solid #e77a18;
+  outline-offset: 2px;
+}
+.sales-form-clean .btn { min-height: 48px; padding: 12px; font-size: 15px; }
+.privacy-clean { font-size: 11px; line-height: 1.5; }
+.privacy-clean .icon { color: #ad4d0e; }
+
+@media (max-width: 850px) {
+  .contact-grid { grid-template-columns: 1fr; gap: 28px; }
+  .contact-copy { max-width: 640px; }
+  .form-clean { justify-self: center; }
+}
+@media (max-width: 620px) {
+  .form-clean { padding: 20px 18px; }
+  .form-clean h3 { font-size: 24px; }
+  .sales-form-clean { gap: 10px; }
+  .sales-form-clean label { font-size: 14px; }
+  .sales-form-clean input, .sales-form-clean select { padding: 9px; }
+  .privacy-clean { font-size: 11px; }
+}
