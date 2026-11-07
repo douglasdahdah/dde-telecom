@@ -968,9 +968,15 @@ app.get('/api/planos', async (req, res) => {
                     selo,
                     ordem,
                     beneficios,
-                    fidelidade_meses
+                    fidelidade_meses,
+                    preco_original,
+                    promocional,
+                    oferta_valida_ate,
+                    observacoes,
+                    atualizado_em
                 FROM planos
                 WHERE ativo = TRUE
+                  AND (oferta_valida_ate IS NULL OR oferta_valida_ate >= CURRENT_DATE)
                 ORDER BY
                     CASE tipo
                         WHEN 'internet' THEN 1

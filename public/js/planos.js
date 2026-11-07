@@ -1,16 +1,108 @@
-let planosDDE=[];let tipoPlanoAtual='internet';
-document.addEventListener('DOMContentLoaded',async()=>{configurarAbasPlanos();configurarMenuPlanos();await carregarPlanosDDE();});
-async function carregarPlanosDDE(){const lista=document.getElementById('lista-planos');if(!lista)return;lista.innerHTML='<p class="loading-plans">Carregando planos...</p>';try{const r=await fetch('/api/planos');if(!r.ok)throw new Error('Não foi possível carregar os planos.');planosDDE=await r.json();mostrarPlanos('internet');}catch(e){console.error(e);lista.innerHTML='<p class="loading-plans">Não foi possível carregar os planos neste momento.</p>';}}
-function normalizarTipo(v){let t=String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');if(t.includes('controle'))return'controle';if(t.includes('pos'))return'pos';return'internet';}
-function mostrarPlanos(tipo){tipoPlanoAtual=tipo;const lista=document.getElementById('lista-planos');if(!lista)return;atualizarAbas(tipo);const planos=planosDDE.filter(p=>normalizarTipo(p.tipo)===tipo);lista.innerHTML='';if(!planos.length){lista.innerHTML='<p class="loading-plans">Nenhum plano disponível nesta categoria.</p>';return;}planos.forEach((p,i)=>lista.appendChild(montarCardPlano(p,i,planos)));}
-function montarCardPlano(p,i,planos){const card=document.createElement('article');const dest=identificarDestaque(p,i,planos);card.className=dest?'plano-card destaque':'plano-card';const v=obterVelocidade(p),pr=separarPreco(p.preco),benef=obterBeneficios(p);card.innerHTML=`${dest?'<div class="plano-selo-destaque">MAIS CONTRATADO</div>':''}<div class="plano-card-conteudo"><div class="plano-velocidade"><strong>${esc(v.numero)}</strong><span>${esc(v.unidade)}</span></div><p class="plano-descricao">${esc(obterDescricao(p,v))}</p><div class="plano-preco-novo"><span class="plano-cifrao">R$</span><strong>${esc(pr.inteiro)}</strong><div class="plano-centavos"><b>,${esc(pr.centavos)}</b><small>/mês</small></div></div><ul class="plano-beneficios">${benef.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><button type="button" class="botao-plano" data-plano="${esc(p.nome||'')}">Quero esse plano →</button></div>`;return card;}
-function identificarDestaque(p,i,planos){const t=[p.nome,p.velocidade,p.descricao].filter(Boolean).join(' ').toLowerCase();if(t.includes('600')&&t.includes('mega'))return true;return planos.length>1&&i===1;}
-function obterVelocidade(p){const t=String(p.velocidade||p.franquia||p.nome||'').trim().toUpperCase();let m=t.match(/(\d+(?:[.,]\d+)?)\s*(GIGA|GBPS)/);if(m)return{numero:m[1],unidade:'GIGA'};m=t.match(/(\d+(?:[.,]\d+)?)\s*(MEGA|MBPS|GB)/);if(m)return{numero:m[1],unidade:m[2]==='GB'?'GB':'MEGA'};m=t.match(/\d+(?:[.,]\d+)?/);return m?{numero:m[0],unidade:normalizarTipo(p.tipo)==='internet'?'MEGA':'GB'}:{numero:p.nome||'Plano',unidade:''};}
-function obterDescricao(p,v){if(p.descricao&&String(p.descricao).trim())return String(p.descricao).trim();const tipo=normalizarTipo(p.tipo);if(tipo==='controle')return'Controle para usar sem surpresas.';if(tipo==='pos')return'Mais internet móvel para sua rotina.';const n=Number(String(v.numero).replace(',','.'));if(n<=600)return'Ideal para toda a família conectada.';return'Alta performance para vários dispositivos.';}
-function obterBeneficios(p){let b=[];if(Array.isArray(p.beneficios))b=p.beneficios.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim());else if(typeof p.beneficios==='string')b=p.beneficios.split(/\n|,|;/).map(x=>x.trim()).filter(Boolean);if(!b.length){const tipo=normalizarTipo(p.tipo);b=tipo==='internet'?['Internet Fibra de alta velocidade','Wi-Fi para sua casa','Atendimento especializado']:['Internet móvel 5G','Ligações ilimitadas','Atendimento especializado'];}return b.slice(0,3);}
-function separarPreco(v){let n=Number(v||0);if(!Number.isFinite(n))n=0;const a=n.toFixed(2).split('.');return{inteiro:Number(a[0]).toLocaleString('pt-BR'),centavos:a[1]};}
-function configurarAbasPlanos(){document.querySelectorAll('.aba-plano').forEach(b=>b.addEventListener('click',()=>mostrarPlanos(b.dataset.tipo)));}
-function atualizarAbas(tipo){document.querySelectorAll('.aba-plano').forEach(b=>b.classList.toggle('ativa',b.dataset.tipo===tipo));}
-function configurarMenuPlanos(){document.querySelectorAll('[data-tipo-menu]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();mostrarPlanos(a.dataset.tipoMenu);document.getElementById('planos')?.scrollIntoView({behavior:'smooth',block:'start'});}));}
-document.addEventListener('click',e=>{const b=e.target.closest('.botao-plano');if(!b)return;e.preventDefault();const i=document.getElementById('interesse');if(i)i.value=b.dataset.plano||'';document.getElementById('atendimento')?.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>document.getElementById('nome')?.focus(),600);});
-function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;");}
+'use strict';
+
+let planosDDE = [];
+let tipoPlanoAtual = 'internet';
+const iconePlano = nome => '<svg class="icon" aria-hidden="true"><use href="#i-' + nome + '"/></svg>';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  document.querySelectorAll('.aba-plano').forEach(botao => botao.addEventListener('click', () => mostrarPlanos(botao.dataset.tipo)));
+  document.querySelectorAll('[data-tipo-menu]').forEach(link => link.addEventListener('click', evento => {
+    evento.preventDefault();
+    mostrarPlanos(link.dataset.tipoMenu);
+    document.getElementById('planos')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+  await carregarPlanosDDE();
+});
+
+async function carregarPlanosDDE() {
+  const lista = document.getElementById('lista-planos');
+  if (!lista) return;
+  try {
+    const resposta = await fetch('/api/planos');
+    if (!resposta.ok) throw new Error('Falha ao consultar ofertas.');
+    const dados = await resposta.json();
+    if (!Array.isArray(dados)) throw new Error('Catálogo indisponível.');
+    planosDDE = dados.filter(p => p && typeof p.nome === 'string' && Number.isFinite(Number(p.preco)));
+    const escolha = document.getElementById('interesse');
+    if (escolha?.tagName === 'SELECT') {
+      const selecionado = escolha.value;
+      escolha.replaceChildren(new Option('Quero ajuda para escolher', 'Atendimento geral'));
+      planosDDE.forEach(p => escolha.add(new Option(p.nome, p.nome)));
+      if (planosDDE.some(p => p.nome === selecionado)) escolha.value = selecionado;
+    }
+    mostrarPlanos(tipoPlanoAtual);
+  } catch (erro) {
+    console.warn('Não foi possível carregar as ofertas da DDE.');
+    lista.innerHTML = '<p class="loading-plans">As ofertas não carregaram agora. <a href="#atendimento">Solicite atendimento à DDE</a> para conhecer as opções.</p>';
+  }
+}
+
+function normalizarTipo(valor) {
+  const tipo = String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return tipo.includes('controle') ? 'controle' : tipo.includes('pos') ? 'pos' : 'internet';
+}
+
+function mostrarPlanos(tipo) {
+  tipoPlanoAtual = normalizarTipo(tipo);
+  const lista = document.getElementById('lista-planos');
+  if (!lista) return;
+  document.querySelectorAll('.aba-plano').forEach(b => {
+    const ativo = b.dataset.tipo === tipoPlanoAtual;
+    b.classList.toggle('ativa', ativo);
+    b.setAttribute('aria-pressed', String(ativo));
+  });
+  lista.replaceChildren();
+  const planos = planosDDE.filter(p => normalizarTipo(p.tipo) === tipoPlanoAtual)
+    .sort((a,b) => Number(a.ordem || 0) - Number(b.ordem || 0) || Number(a.id) - Number(b.id));
+  lista.classList.toggle('single', planos.length === 1);
+  if (!planos.length) {
+    lista.innerHTML = '<p class="loading-plans">Consulte nossa equipe para conhecer as opções desta categoria. <a href="#atendimento">Quero atendimento</a></p>';
+    return;
+  }
+  planos.forEach(plano => lista.appendChild(montarCardPlano(plano)));
+}
+
+function montarCardPlano(p) {
+  const tipo = normalizarTipo(p.tipo);
+  const combo = tipo === 'internet' && Boolean(p.franquia);
+  const categoria = combo ? 'Fibra + celular' : tipo === 'internet' ? 'Internet Fibra Algar' : tipo === 'controle' ? 'Algar Controle' : 'Algar Pós-pago';
+  const velocidade = obterVelocidade(p);
+  const preco = Number(p.preco).toFixed(2).split('.');
+  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(x => typeof x === 'string').slice(0,4) : [];
+  const card = document.createElement('article');
+  card.className = 'plano-card' + (p.destaque ? ' destaque' : '') + (combo ? ' combo' : '');
+  const selo = p.selo || (tipo === 'internet' ? 'Conexão para sua casa' : 'Conecte seu celular');
+  const condicoes = p.observacoes || (p.fidelidade_meses ? 'Consulte as condições da oferta e de pagamento no atendimento.' : 'Consulte disponibilidade e condições no atendimento.');
+  card.innerHTML = '<div class="plano-selo">' + esc(selo) + '</div><div class="plano-card-conteudo">' +
+    '<div class="plano-main"><div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
+    '<div class="plano-velocidade' + (velocidade.unidade ? '' : ' ilimitado') + '"><strong>' + esc(velocidade.numero) + '</strong><span>' + esc(velocidade.unidade) + '</span></div>' +
+    '<p class="plano-descricao">' + esc(p.descricao || p.nome) + '</p>' +
+    '<div class="plano-preco" aria-label="' + esc(Number(p.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + ' por mês"><small>R$</small><strong>' + Number(preco[0]).toLocaleString('pt-BR') + '</strong><b>,' + preco[1] + '</b><span>/mês</span></div>' +
+    '<p class="plano-price-context">Consulte as condições abaixo</p></div>' +
+    '<ul class="plano-beneficios">' + beneficios.map(b => '<li>' + iconePlano('check') + '<span>' + esc(b) + '</span></li>').join('') + '</ul>' +
+    '<p class="plano-condicoes">' + esc(condicoes) + '</p>' +
+    '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) + '" aria-label="Quero conhecer ' + esc(p.nome) + '">Quero esse plano ' + iconePlano('arrow') + '</button>' +
+    '<p class="plano-fidelidade">' + (p.fidelidade_meses ? 'Fidelidade de ' + Number(p.fidelidade_meses) + ' meses.' : 'Condições confirmadas no atendimento.') + '</p></div>';
+  return card;
+}
+
+function obterVelocidade(p) {
+  const texto = String(normalizarTipo(p.tipo) === 'internet' ? p.velocidade || p.nome : p.franquia || p.nome).toUpperCase();
+  if (texto.includes('ILIMITADO')) return {numero:'Ilimitado',unidade:''};
+  let m = texto.match(/(\d+(?:[.,]\d+)?)\s*(GIGA|GBPS)/);
+  if (m) return {numero:m[1],unidade:'GIGA'};
+  m = texto.match(/(\d+(?:[.,]\d+)?)\s*(MEGA|MBPS|GB)/);
+  return m ? {numero:m[1],unidade:m[2] === 'GB' ? 'GB' : 'MEGA'} : {numero:p.nome,unidade:''};
+}
+
+document.addEventListener('click', evento => {
+  const botao = evento.target.closest('.botao-plano');
+  if (!botao) return;
+  const campo = document.getElementById('interesse');
+  if (campo) { campo.value = botao.dataset.plano || 'Atendimento geral'; campo.dispatchEvent(new Event('change',{bubbles:true})); }
+  document.getElementById('atendimento')?.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(() => document.getElementById('nome')?.focus({preventScroll:true}), 450);
+});
+
+function esc(valor) { return String(valor ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
+
