@@ -6,7 +6,7 @@ Você não precisa instalar o ZIP nem executar comandos. Guarde-o como cópia da
 ## Atualização de 07/11/2026
 
 - Visual renovado, com letras maiores, apresentação mais curta, ofertas e formulário de atendimento.
-- Composição clara e contemporânea em azul, verde e laranja, com o logotipo aprovado. Formulário mais estreito e campos compactos; os campos de contato e endereço continuam disponíveis.
+- Banner amplo da família e imagem original de atendimento preservados, com o WhatsApp atualizado. A paleta mantém azul, verde e laranja. Formulário mais estreito e campos compactos; os campos de contato e endereço continuam disponíveis.
 - O site mostra apenas “Atendimento comercial”, sem dias ou horários.
 - WhatsApp comercial: **(34) 99644-0163**. Marca parceira: **Algar**.
 - Os dois links comerciais que saíam do site para a loja da Algar foram removidos.
