@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const pool = require('./database/db');
 const { registerMetaIntegration } = require('./meta-integration');
+const { registerWhatsappNotifications } = require('./whatsapp-notifications');
 const app = express();
 
     
@@ -44,6 +45,7 @@ app.use(express.json({
 app.use((req, res, next) => { req.body = req.body || {}; next(); });
 app.use(express.static(path.join(__dirname, '..', 'public')));
 registerMetaIntegration(app, pool);
+registerWhatsappNotifications(app, pool);
 
 
 const loginLimiter=rateLimit({

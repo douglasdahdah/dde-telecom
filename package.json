@@ -6,7 +6,8 @@
     "scripts":  {
                     "start":  "node src/server.js",
                     "dev":  "nodemon src/server.js",
-                    "check":  "node --check src/server.js \u0026\u0026 node --check src/database/db.js \u0026\u0026 node --check public/admin/admin.js \u0026\u0026 node --check public/admin/atribuicao.js \u0026\u0026 node --check public/admin/login.js \u0026\u0026 node --check public/admin/planos.js \u0026\u0026 node --check public/admin/usuarios.js \u0026\u0026 node --check public/vendedor/login.js \u0026\u0026 node --check public/vendedor/painel.js \u0026\u0026 node --check public/vendedor/vendedor.js \u0026\u0026 node --check public/js/app.js \u0026\u0026 node --check public/js/planos.js \u0026\u0026 node --check scripts/criar-admin.js",
+                    "check":  "node --check src/server.js && node --check src/database/db.js && node --check public/admin/admin.js && node --check public/admin/atribuicao.js && node --check public/admin/login.js && node --check public/admin/planos.js && node --check public/admin/usuarios.js && node --check public/vendedor/login.js && node --check public/vendedor/painel.js && node --check public/vendedor/vendedor.js && node --check public/js/app.js && node --check public/js/planos.js && node --check scripts/criar-admin.js && node --check src/whatsapp-notifications.js",
+                    "test":  "node --test test/*.test.js",
                     "criar-admin":  "node scripts/criar-admin.js"
                 },
     "keywords":  [

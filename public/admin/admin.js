@@ -130,6 +130,11 @@ const botaoWhatsapp =
 
 let leads = [];
 let leadAtual = null;
+let pedidoLeads = null;
+let atualizacaoAutomatica = null;
+let sessaoEncerrada = false;
+let painelPronto = false;
+const estadoAtualizacao = document.getElementById('atualizacao-leads');
 
 
 // =====================================================
@@ -150,6 +155,9 @@ function headersAutenticados() {
 // =====================================================
 
 function encerrarSessao() {
+    sessaoEncerrada = true;
+    painelPronto = false;
+    clearInterval(atualizacaoAutomatica);
 
     localStorage.removeItem('dde_admin_token');
     localStorage.removeItem('dde_admin_usuario');
@@ -278,79 +286,51 @@ async function validarSessao() {
 // CARREGAR LEADS
 // =====================================================
 
-async function carregarLeads() {
-
-    if (mensagem) {
-
-        mensagem.textContent =
-            'Carregando leads...';
-    }
-
-
-    try {
-
-        const resposta =
-            await fetch(
-                '/api/leads',
-                {
-                    headers: {
-                        'Authorization':
-                            `Bearer ${token}`
-                    }
-                }
-            );
-
-
-        if (
-            !verificarAutorizacao(
-                resposta
-            )
-        ) {
-            return;
+function carregarLeads(opcoes = {}) {
+    if (pedidoLeads) return pedidoLeads;
+    if (sessaoEncerrada) return Promise.resolve(false);
+    const silencioso = opcoes.silencioso === true;
+    if (mensagem && !silencioso) mensagem.textContent = 'Carregando leads...';
+    pedidoLeads = (async () => {
+        try {
+            const resposta = await fetch('/api/leads', {
+                headers: { Authorization: `Bearer ${token}` },
+                cache: 'no-store', signal: AbortSignal.timeout(12000)
+            });
+            if (!verificarAutorizacao(resposta)) return false;
+            if (!resposta.ok) throw new Error('Não foi possível carregar os leads.');
+            const dados = await resposta.json();
+            if (!Array.isArray(dados)) throw new Error('Resposta de leads inválida.');
+            if (sessaoEncerrada) return false;
+            leads = dados;
+            atualizarIndicadores();
+            renderizarLeads();
+            if (mensagem) mensagem.textContent = '';
+            if (estadoAtualizacao) {
+                const hora = new Date().toLocaleTimeString('pt-BR');
+                estadoAtualizacao.textContent = `Atualizado às ${hora} · automático a cada 20 s`;
+                estadoAtualizacao.classList.remove('atualizacao-falhou');
+            }
+            return true;
+        } catch (erro) {
+            console.error('Erro ao carregar leads:', erro);
+            if (!silencioso && mensagem) mensagem.textContent = 'Não foi possível carregar os leads.';
+            if (estadoAtualizacao && !sessaoEncerrada) {
+                estadoAtualizacao.textContent = 'Conexão indisponível. Tentaremos atualizar novamente.';
+                estadoAtualizacao.classList.add('atualizacao-falhou');
+            }
+            return false;
         }
+    })().finally(() => { pedidoLeads = null; });
+    return pedidoLeads;
+}
 
-
-        if (!resposta.ok) {
-
-            throw new Error(
-                'Não foi possível carregar os leads.'
-            );
-        }
-
-
-        const dados =
-            await resposta.json();
-
-
-        leads =
-            Array.isArray(dados)
-                ? dados
-                : [];
-
-
-        atualizarIndicadores();
-
-        renderizarLeads();
-
-
-        if (mensagem) {
-            mensagem.textContent = '';
-        }
-
-    } catch (erro) {
-
-        console.error(
-            'Erro ao carregar leads:',
-            erro
-        );
-
-
-        if (mensagem) {
-
-            mensagem.textContent =
-                'Não foi possível carregar os leads.';
-        }
-    }
+function atualizarAutomaticamente() {
+    if (!painelPronto || sessaoEncerrada || document.hidden || modal?.classList.contains('aberto')) return;
+    // Mantém a seleção de controles eventualmente abertos dentro da lista.
+    if (listaLeads?.contains(document.activeElement) &&
+        ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+    return carregarLeads({ silencioso: true });
 }
 
 
@@ -1078,6 +1058,7 @@ function fechar() {
     );
 
     leadAtual = null;
+    atualizarAutomaticamente();
 }
 
 
@@ -1419,6 +1400,7 @@ function escaparHtml(valor) {
 // =====================================================
 
 async function iniciarPainel() {
+    if (!token || sessaoEncerrada) return;
 
     const sessaoValida =
         await validarSessao();
@@ -1429,8 +1411,23 @@ async function iniciarPainel() {
     }
 
 
+    painelPronto = true;
     await carregarLeads();
+    if (sessaoEncerrada) return;
+    atualizacaoAutomatica = setInterval(atualizarAutomaticamente, 20000);
 }
 
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) atualizarAutomaticamente();
+});
+window.addEventListener('focus', atualizarAutomaticamente);
+window.addEventListener('pagehide', () => clearInterval(atualizacaoAutomatica));
+window.addEventListener('pageshow', evento => {
+    if (evento.persisted && painelPronto && !sessaoEncerrada) {
+        clearInterval(atualizacaoAutomatica);
+        atualizacaoAutomatica = setInterval(atualizarAutomaticamente, 20000);
+        atualizarAutomaticamente();
+    }
+});
 
 iniciarPainel();

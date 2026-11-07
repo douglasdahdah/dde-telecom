@@ -20,6 +20,22 @@ O formulário identifica o plano escolhido e os parâmetros de campanha do link 
 
 O formulário do site também foi conferido em uma prévia local com destino simulado; esse teste local não gravou novos contatos no Neon. Nenhuma campanha paga foi iniciada por esta atualização.
 
+## Avisos de novos leads por WhatsApp
+
+O envio oficial da Meta está em configuração para **(34) 99644-0163**. A conta, o aplicativo e o modelo de mensagem foram preparados; a aprovação do modelo e a entrega do teste precisam ser confirmadas antes de declarar o canal ativo.
+
+Os avisos mostram o número do lead e o acesso ao CRM. Os dados pessoais dos clientes ficam no CRM. O primeiro aviso será identificado como teste e não cria um lead fictício.
+
+O código mantém uma fila no PostgreSQL, limita o envio a 100 mensagens potencialmente cobradas por mês, incluindo testes, e só libera os avisos após a confirmação de entrega do teste. O limite é conservador para o orçamento autorizado de R$ 10 por mês: a tarifa de Utilidade consultada é R$ 0,035 por mensagem entregue, antes dos impostos. Modelos reclassificados como Marketing são bloqueados. A tarifa deve ser revisada antes de janeiro de 2027; o envio pausa em 01/01/2027 até essa revisão.
+
+Para manutenção: as tabelas e o gatilho estão em `sql/migrations/2026-11-07-whatsapp-alerts.sql`. A instalação preserva leads e usuários. O modo padrão é `off`; `test` verifica apenas o aviso de teste; `auto` libera os avisos depois que a Meta confirmar a entrega. As credenciais ficam no Render. O recebimento de confirmações usa `/api/whatsapp/webhook` com assinatura da Meta e chave de verificação. Não copie chaves para este arquivo nem para o GitHub.
+
+## Painel do administrador
+
+O painel usa a identidade do site de vendas: azul, verde e laranja, com o logotipo aprovado. Os contatos e os indicadores são atualizados automaticamente a cada 20 segundos enquanto a página está visível. Os filtros permanecem selecionados. Durante a edição de um atendimento, a atualização aguarda o fechamento da janela para preservar as anotações ainda não salvas.
+
+Se a conexão falhar, os contatos já exibidos permanecem na tela e o painel tenta novamente. Os acessos e as permissões existentes continuam sendo conferidos pelo servidor.
+
 ## Cópia de segurança
 
 O ZIP contém o código e um `.env.example` sem senhas. Ele não contém o banco de dados nem as chaves privadas do Render. O ZIP original deve continuar guardado.
@@ -35,3 +51,5 @@ As mudanças de catálogo estão em `sql/migrations/2026-11-07-ofertas-uberaba.s
 ## Conferências
 
 Verificações de sintaxe passaram. Preços e links foram conferidos no site publicado. A revisão de apresentação não altera autenticação, permissões ou processamento de leads. Para reverter a apresentação, publique o commit anterior; não restaure um banco antigo por causa de uma alteração visual.
+
+A fila do WhatsApp foi testada em uma ramificação separada do Neon: criação automática do aviso, bloqueio até a entrega do teste, limite mensal e prevenção de reenvio em falhas ambíguas. Nessa validação, as respostas de envio da Meta foram simuladas; não houve mensagem real. Os 16 testes automatizados também passaram. O teste real de entrega continua sendo uma etapa separada, dependente da liberação da Meta.

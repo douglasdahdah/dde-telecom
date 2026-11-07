@@ -1,0 +1,96 @@
+:root {
+    --azul-950:#062b3d; --azul-900:#0b3c59; --azul-800:#145680; --azul-700:#166fc6;
+    --verde:#0bc99c; --verde-escuro:#00876c; --verde-claro:#e1f7ee;
+    --laranja:#ff8b31; --laranja-claro:#fff0df;
+    --texto:#123b50; --texto-2:#577181; --texto-3:#718996;
+    --fundo:#f5f9fc; --borda:#dbe7ef; --borda-clara:#eaf0f5;
+    --sombra:0 10px 30px #0b3c5908;
+}
+body { background:radial-gradient(ellipse at 96% 0,#ff8b3108,transparent 30%),#f5f9fc; color:var(--texto); }
+button,input,select,textarea { font-family:inherit; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible {
+    outline:3px solid #298ad0; outline-offset:3px;
+}
+.sidebar { width:224px; padding:28px 18px 22px; background:linear-gradient(170deg,#062b3d,#0b3c59); }
+.sidebar .logo {
+    display:block; width:168px; height:65px; margin:0 auto 28px; position:relative;
+    border-radius:13px; background:#062b3d url('/images/logo-dde-telecom-perfil.png') center/190px 190px no-repeat;
+}
+.sidebar .logo strong,.sidebar .logo span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.sidebar-titulo { color:#9dbbc9; font-size:10px; letter-spacing:1.5px; margin:0 12px 14px; }
+.sidebar nav { gap:7px; }
+.sidebar nav a { font-size:13px; min-height:46px; padding:10px 13px; border:1px solid transparent; color:#dbe9f1; line-height:1.35; }
+.sidebar nav a:hover { background:#ffffff0c; border-color:#ffffff12; }
+.sidebar nav a.ativo { color:#fff; background:linear-gradient(105deg,#166fc64a,#0bc99c20); border-color:#ffffff18; }
+.sidebar nav a.ativo::before { background:#ff8b31; width:3px; left:-1px; }
+.sidebar nav a span { font-size:19px; color:#8ce3c8; }
+.sidebar-rodape { border-top:1px solid #ffffff14; padding:18px 12px 0; color:#94b2c2; font-size:11px; }
+.principal { margin-left:224px; padding:28px 30px 40px; }
+.topo {
+    flex-wrap:wrap;
+    position:relative; padding:24px 26px; margin-bottom:24px; border:1px solid var(--borda);
+    border-radius:20px; background:linear-gradient(110deg,#fff 60%,#f0f9f5); box-shadow:var(--sombra);
+}
+.topo::before { content:''; position:absolute; top:-1px; left:26px; width:100px; height:3px; border-radius:8px;
+    background:linear-gradient(90deg,#166fc6 0 52%,#0bc99c 52% 78%,#ff8b31 78%); }
+.topo h1 { color:#123b50; font-size:clamp(26px,2.5vw,34px); letter-spacing:-1px; line-height:1.15; margin:7px 0 10px; }
+.topo p { color:#577181; font-size:14px; line-height:1.55; }
+.topo > .atualizacao-painel { flex-basis:100%; margin-top:-7px; }
+.saudacao,.mini-titulo { color:#00876c; letter-spacing:1.2px; font-size:10px; }
+.acoes-topo { gap:10px; flex-wrap:wrap; }
+.usuario-logado { border-left:0; padding:0 15px 0 0; }
+.usuario-logado span { color:#718996; font-size:10px; }
+.usuario-logado strong { color:#123b50; font-size:13px; }
+.botao-atualizar,.equipe-primario { color:#fff; background:linear-gradient(110deg,#1977cb,#0e5ea6); border:0; border-radius:11px; min-height:42px; box-shadow:0 6px 15px #166fc61a; }
+.botao-atualizar:hover,.equipe-primario:hover { background:#166fc6; }
+.botao-sair,.equipe-secundario { background:#fff; color:#345c72; border:1px solid #d1e1eb; border-radius:11px; min-height:42px; }
+.botao-sair:hover,.equipe-secundario:hover { background:#edf4fa; }
+.indicadores { gap:16px; margin-bottom:24px; }
+.indicador { border:1px solid #dbe7ef; border-radius:18px; padding:20px; box-shadow:var(--sombra); background:#fff; }
+.indicador strong { color:#104b70; font-size:32px; letter-spacing:-1px; }
+.indicador span { color:#607987; font-size:12px; }
+.indicador-icone { background:#e9f2fb; color:#166fc6; border-radius:13px; width:46px; height:46px; }
+.indicador:nth-child(2) .indicador-icone,.indicador:nth-child(4) .indicador-icone { background:#e1f7ee; color:#00876c; }
+.indicador:nth-child(3) .indicador-icone { background:#fff0df; color:#be5d17; }
+.painel-leads { padding:24px; border:1px solid #dbe7ef; border-radius:20px; box-shadow:var(--sombra); background:#fff; }
+.titulo-bloco h2 { color:#123b50; font-size:21px; letter-spacing:-.5px; }
+.ferramentas { gap:12px; }
+#pesquisa,#pesquisa-usuario,#filtro-status { background:#f8fbfd; border:1px solid #d5e4ed; border-radius:11px; min-height:44px; font-size:14px; }
+#leads table { border-collapse:separate; border-spacing:0; }
+#leads th { color:#577181; font-size:11px; font-weight:750; letter-spacing:.3px; background:#f0f6fa; padding:14px 12px; }
+#leads td { font-size:13px; padding:16px 12px; border-color:#edf2f6; }
+#leads td strong { color:#123b50; font-size:13px; }
+#leads td small { color:#718996; font-size:11px; }
+#leads tbody tr:hover { background:#f7fbfd; }
+.status-lead { font-size:11px; padding:6px 10px; border-radius:999px; }
+.btn-detalhes { border-radius:9px; font-size:12px; background:#eaf3fb; color:#1769ad; border:1px solid #dcebf7; }
+.modal-caixa { border-radius:22px; border:1px solid #d7e6ed; box-shadow:0 25px 80px #062b3d26; }
+.detalhe-item { border-color:#e1ebf1; background:#f9fcfe; border-radius:12px; }
+.botao-status { border-radius:10px; }
+.atualizacao-painel { margin-top:12px; color:#00876c!important; font-size:11px!important; font-weight:600; }
+.atualizacao-painel::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:7px; background:#0bc99c; }
+.atualizacao-falhou { color:#9a4a12!important; }
+.atualizacao-falhou::before { background:#ff8b31; }
+.admin-login { background:radial-gradient(ellipse at 15% 10%,#dff7ed,transparent 48%),radial-gradient(ellipse at 95% 90%,#fff0df,transparent 40%),#eef5fb; }
+.admin-login .c { border:1px solid #dce7ef; border-radius:24px; box-shadow:0 20px 60px #0b3c5910; padding:32px; }
+.admin-login .m { font-size:0; width:181px; height:72px; border-radius:13px; background:#062b3d url('/images/logo-dde-telecom-perfil.png') center/210px 210px no-repeat; }
+.admin-login h1 { color:#123b50; font-size:26px; letter-spacing:-.7px; margin:25px 0 18px; }
+.admin-login input { font-size:16px; background:#f8fbfd; border-color:#d0e1ec; border-radius:11px; }
+.admin-login .e { border-radius:11px; background:linear-gradient(110deg,#1977cb,#0e5ea6); box-shadow:0 7px 18px #166fc61a; }
+@media(max-width:1150px) { .topo { align-items:flex-start; flex-direction:column; gap:18px; } .acoes-topo { width:100%; } .topo > .atualizacao-painel { flex-basis:auto; } }
+@media(max-width:900px) {
+    .sidebar { position:relative; width:100%; padding:18px 20px; }
+    .sidebar .logo { margin:0 0 16px; }
+    .sidebar-titulo,.sidebar-rodape { display:none; }
+    .sidebar nav { flex-direction:row; flex-wrap:wrap; }
+    .sidebar nav a { min-height:40px; padding:8px 12px; }
+    .principal { margin-left:0; padding:20px; }
+    .indicadores { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:580px) {
+    .principal { padding:15px; } .topo,.painel-leads { padding:20px; border-radius:17px; }
+    .indicador { padding:15px; gap:12px; } .indicador strong { font-size:27px; }
+    .indicador-icone { width:36px; height:36px; font-size:21px; flex-shrink:0; }
+    .indicador span { font-size:11px; } .usuario-logado { width:100%; }
+    .sidebar nav a { font-size:12px; } .admin-login .c { padding:27px; }
+}
