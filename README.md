@@ -32,9 +32,13 @@ Para manutenção: as tabelas e o gatilho estão em `sql/migrations/2026-11-07-w
 
 ## Painel do administrador
 
-O painel usa a identidade do site de vendas: azul, verde e laranja, com o logotipo aprovado. Os contatos e os indicadores são atualizados automaticamente a cada 20 segundos enquanto a página está visível. Os filtros permanecem selecionados. Durante a edição de um atendimento, a atualização aguarda o fechamento da janela para preservar as anotações ainda não salvas.
+O painel usa a identidade do site de vendas: azul, verde e laranja, com o logotipo aprovado. Os contatos e os indicadores são atualizados automaticamente a cada 60 segundos enquanto a página está visível. Os filtros permanecem selecionados. Durante a edição de um atendimento, a atualização aguarda o fechamento da janela para preservar as anotações ainda não salvas.
 
 Se a conexão falhar, os contatos já exibidos permanecem na tela e o painel tenta novamente. Os acessos e as permissões existentes continuam sendo conferidos pelo servidor.
+
+Para baixar um relatório, entre como administrador e clique em **Baixar Excel**, na visão geral ou na tela de leads. O arquivo `.xlsx` contém todos os campos do cadastro, incluindo contato, endereço, plano, status, observações, datas, responsável e dados de origem/campanha. Na tela de leads, o relatório aplica a busca e o status selecionados; na visão geral, inclui todos os leads. As datas são exibidas no horário de Brasília. Telefones, CEPs e identificadores de anúncios permanecem como texto, preservando zeros e todos os dígitos.
+
+A coluna **Vendedor indicado** é preenchida quando o responsável tem perfil de vendedor. Leads ainda sob responsabilidade de um administrador continuam com esse responsável identificado, e o campo de vendedor fica vazio. A atribuição é feita na opção já existente **Ver detalhes → Atribuir responsável**. O Excel é uma cópia para consulta; alterá-lo não modifica o CRM. A exportação é exclusiva de administradores, gera o arquivo no momento do download e não altera o banco.
 
 ## Cópia de segurança
 

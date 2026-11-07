@@ -11,6 +11,7 @@ require('dotenv').config();
 const pool = require('./database/db');
 const { registerMetaIntegration } = require('./meta-integration');
 const { registerWhatsappNotifications } = require('./whatsapp-notifications');
+const { registerLeadReports } = require('./lead-reports');
 const app = express();
 
     
@@ -226,6 +227,7 @@ function somenteAdmin(req,res,next){
 }
 
 app.get('/health', (req, res) => res.json({ status: 'ok', empresa: 'DDE Telecom' }));
+registerLeadReports(app, pool, { autenticar, somenteAdmin });
 
 // ===== DDE USUARIOS REPARO BEGIN =====
 

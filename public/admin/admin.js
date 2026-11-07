@@ -135,6 +135,10 @@ let atualizacaoAutomatica = null;
 let sessaoEncerrada = false;
 let painelPronto = false;
 const estadoAtualizacao = document.getElementById('atualizacao-leads');
+const intervaloLeads = 60000;
+const botaoExportar = document.getElementById('exportar-excel');
+const mensagemRelatorio = document.getElementById('mensagem-relatorio');
+let exportandoRelatorio = false;
 
 
 // =====================================================
@@ -308,7 +312,7 @@ function carregarLeads(opcoes = {}) {
             if (mensagem) mensagem.textContent = '';
             if (estadoAtualizacao) {
                 const hora = new Date().toLocaleTimeString('pt-BR');
-                estadoAtualizacao.textContent = `Atualizado às ${hora} · automático a cada 20 s`;
+                estadoAtualizacao.textContent = `Atualizado às ${hora} · automático a cada 60 s`;
                 estadoAtualizacao.classList.remove('atualizacao-falhou');
             }
             return true;
@@ -410,7 +414,8 @@ function obterLeadsFiltrados() {
                     lead.email,
                     lead.cidade,
                     lead.estado,
-                    lead.interesse
+                    lead.interesse,
+                    lead.vendedor
                 ]
                     .filter(Boolean)
                     .join(' ')
@@ -1362,6 +1367,43 @@ botaoAtualizar?.addEventListener(
     carregarLeads
 );
 
+botaoExportar?.addEventListener('click', async () => {
+    if (!painelPronto || sessaoEncerrada || exportandoRelatorio) return;
+    exportandoRelatorio = true;
+    botaoExportar.disabled = true;
+    botaoExportar.textContent = 'Gerando Excel…';
+    mensagemRelatorio.textContent = 'Preparando o relatório com os dados atuais do cadastro…';
+    mensagemRelatorio.classList.remove('relatorio-erro');
+    try {
+        const parametros = new URLSearchParams();
+        if (pesquisa?.value.trim()) parametros.set('q',pesquisa.value.trim());
+        if (filtroStatus?.value) parametros.set('status',filtroStatus.value);
+        const resposta = await fetch(`/api/admin/relatorios/leads.xlsx?${parametros}`, {
+            headers: {Authorization:`Bearer ${token}`},cache:'no-store',signal:AbortSignal.timeout(60000)
+        });
+        if (!verificarAutorizacao(resposta)) return;
+        if (!resposta.ok) {
+            const dados = await resposta.json().catch(()=>({}));
+            throw new Error(dados.erro || 'Não foi possível gerar o relatório. Tente novamente.');
+        }
+        const arquivo = await resposta.blob();
+        const nome = resposta.headers.get('Content-Disposition')?.match(/filename="([a-zA-Z0-9._-]+)"/)?.[1] || 'DDE-Leads.xlsx';
+        const endereco = URL.createObjectURL(arquivo);
+        const link = document.createElement('a');
+        link.href = endereco; link.download = nome;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(()=>URL.revokeObjectURL(endereco),60000);
+        mensagemRelatorio.textContent = 'Excel pronto. O download foi solicitado ao navegador.';
+    } catch (erro) {
+        mensagemRelatorio.textContent = erro.name==='TimeoutError' ? 'A geração demorou mais que o esperado. Tente novamente.' : erro.message;
+        mensagemRelatorio.classList.add('relatorio-erro');
+    } finally {
+        exportandoRelatorio = false;
+        botaoExportar.disabled = sessaoEncerrada;
+        botaoExportar.textContent = '↓ Baixar Excel';
+    }
+});
+
 
 // =====================================================
 // ESCAPAR HTML
@@ -1412,9 +1454,10 @@ async function iniciarPainel() {
 
 
     painelPronto = true;
+    if (botaoExportar) botaoExportar.disabled = false;
     await carregarLeads();
     if (sessaoEncerrada) return;
-    atualizacaoAutomatica = setInterval(atualizarAutomaticamente, 20000);
+    atualizacaoAutomatica = setInterval(atualizarAutomaticamente, intervaloLeads);
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -1425,7 +1468,7 @@ window.addEventListener('pagehide', () => clearInterval(atualizacaoAutomatica));
 window.addEventListener('pageshow', evento => {
     if (evento.persisted && painelPronto && !sessaoEncerrada) {
         clearInterval(atualizacaoAutomatica);
-        atualizacaoAutomatica = setInterval(atualizarAutomaticamente, 20000);
+        atualizacaoAutomatica = setInterval(atualizarAutomaticamente, intervaloLeads);
         atualizarAutomaticamente();
     }
 });

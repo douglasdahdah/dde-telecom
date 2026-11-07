@@ -16,7 +16,7 @@
         href="/admin/admin.css?v=20"
     >
 <link rel="stylesheet" href="/admin/usuarios.css?v=1">
-<link rel="stylesheet" href="/admin/identidade-dde.css?v=4001">
+<link rel="stylesheet" href="/admin/identidade-dde.css?v=4002">
 </head>
 
 <body>
@@ -113,6 +113,8 @@
 
                 </div>
 
+                <button type="button" id="exportar-excel" class="botao-excel" disabled>↓ Baixar Excel</button>
+
                 <button
                     type="button"
                     id="atualizar"
@@ -131,8 +133,9 @@
 
             </div>
 
-        <p id="atualizacao-leads" class="atualizacao-painel">Atualização automática a cada 20 segundos</p>
+        <p id="atualizacao-leads" class="atualizacao-painel">Atualização automática a cada 60 segundos</p>
         </header>
+        <p id="mensagem-relatorio" class="mensagem-relatorio" role="status">Baixe todos os leads em Excel, com os dados completos e o vendedor indicado.</p>
 
 
         <!-- =================================================
@@ -704,7 +707,7 @@
     </div>
 
 
-    <script src="/admin/admin.js?v=4001"></script>
+    <script src="/admin/admin.js?v=4002"></script>
 
 <script src="/admin/atribuicao.js?v=3001"></script>
 </body>

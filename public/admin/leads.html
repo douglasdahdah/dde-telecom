@@ -16,7 +16,7 @@
         href="/admin/admin.css?v=21"
     >
 <link rel="stylesheet" href="/admin/usuarios.css?v=1">
-<link rel="stylesheet" href="/admin/identidade-dde.css?v=4001">
+<link rel="stylesheet" href="/admin/identidade-dde.css?v=4002">
 </head>
 
 <body>
@@ -117,6 +117,8 @@
                 </div>
 
 
+                <button type="button" id="exportar-excel" class="botao-excel" disabled>↓ Baixar Excel</button>
+
                 <button
                     type="button"
                     id="atualizar"
@@ -136,8 +138,9 @@
 
             </div>
 
-        <p id="atualizacao-leads" class="atualizacao-painel">Atualização automática a cada 20 segundos</p>
+        <p id="atualizacao-leads" class="atualizacao-painel">Atualização automática a cada 60 segundos</p>
         </header>
+        <p id="mensagem-relatorio" class="mensagem-relatorio" role="status">O Excel inclui todos os campos e o vendedor indicado. Respeita a busca e o status selecionados.</p>
 
 
         <!-- =================================================
@@ -233,7 +236,7 @@
                     <input
                         type="search"
                         id="pesquisa"
-                        placeholder="Buscar cliente, telefone, cidade..."
+                        placeholder="Buscar cliente, telefone, cidade ou vendedor..."
                     >
 
 
@@ -587,7 +590,7 @@
     </div>
 
 
-    <script src="/admin/admin.js?v=4001"></script>
+    <script src="/admin/admin.js?v=4002"></script>
 
 <script src="/admin/atribuicao.js?v=3001"></script>
 </body>

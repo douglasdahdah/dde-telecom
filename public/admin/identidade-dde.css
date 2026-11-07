@@ -71,6 +71,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .atualizacao-painel::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:7px; background:#0bc99c; }
 .atualizacao-falhou { color:#9a4a12!important; }
 .atualizacao-falhou::before { background:#ff8b31; }
+.botao-excel { min-height:42px; padding:0 17px; border:1px solid #a3d5c4; border-radius:11px; background:#e1f7ee; color:#00684f; font-size:12px; font-weight:800; cursor:pointer; }
+.botao-excel:hover { background:#cef1e3; }
+.botao-excel:disabled { opacity:.55; cursor:wait; }
+.mensagem-relatorio { margin:-10px 0 22px; padding:0 4px; color:#577181; font-size:12px; line-height:1.5; }
+.mensagem-relatorio.relatorio-erro { color:#a54119; }
 .admin-login { background:radial-gradient(ellipse at 15% 10%,#dff7ed,transparent 48%),radial-gradient(ellipse at 95% 90%,#fff0df,transparent 40%),#eef5fb; }
 .admin-login .c { border:1px solid #dce7ef; border-radius:24px; box-shadow:0 20px 60px #0b3c5910; padding:32px; }
 .admin-login .m { font-size:0; width:181px; height:72px; border-radius:13px; background:#062b3d url('/images/logo-dde-telecom-perfil.png') center/210px 210px no-repeat; }
