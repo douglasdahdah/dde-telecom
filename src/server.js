@@ -14,6 +14,8 @@ const { registerWhatsappNotifications } = require('./whatsapp-notifications');
 const { registerLeadReports } = require('./lead-reports');
 const { registerMetaImportStatus } = require('./meta-import-status');
 const { registerLeadTrash } = require('./lead-trash');
+const { registerEmailNotifications } = require('./email-notifications');
+const { notifyNewLead } = require('./lead-events');
 const app = express();
 
     
@@ -49,6 +51,7 @@ app.use((req, res, next) => { req.body = req.body || {}; next(); });
 app.use(express.static(path.join(__dirname, '..', 'public')));
 registerMetaIntegration(app, pool);
 registerWhatsappNotifications(app, pool);
+registerEmailNotifications(pool);
 
 
 const loginLimiter=rateLimit({
@@ -1763,6 +1766,7 @@ app.post(
                 );
 
 
+            notifyNewLead();
             return res.status(201).json({
 
                 mensagem:
@@ -1822,6 +1826,7 @@ app.post('/api/leads', executar(async (req, res) => {
             lead.interesse || null, admin.nome, admin.id, origemDoLead(lead.metadadosMarketing),
             JSON.stringify(lead.metadadosMarketing)]
     );
+    notifyNewLead();
     res.status(201).json({ mensagem: 'Lead cadastrado com sucesso.', lead: rows[0] });
 }));
 // A restrição por vendedor é aplicada dentro de cada consulta ao banco.

@@ -1,4 +1,5 @@
 'use strict';
+const { notifyNewLead } = require('./lead-events');
 
 const {
     fetchMetaLead,
@@ -185,6 +186,7 @@ async function processOneMetaImport(pool, event, config) {
                 WHERE meta_lead_id = $1
             `, [event.meta_lead_id, lead.rows[0].id]);
             await client.query('COMMIT');
+            notifyNewLead();
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;

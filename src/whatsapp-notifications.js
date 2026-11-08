@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const { onNewLead } = require('./lead-events');
 const { verifyMetaSignature, validateGraphApiVersion } = require('./meta-leads');
 const ALLOWED_RECIPIENT = '5534996440163';
 const MODES = new Set(['off', 'test', 'auto']);
@@ -140,11 +141,13 @@ async function rejectAlert(pool, id, code, retry) {
 
 function createWorker(pool, getConfig = readConfig, fetchImpl = fetch) {
     let running = false;
+    let rerun = false;
     let templateCheckedAt = 0;
     let templateReady = false;
     return async function run() {
         const config = getConfig();
-        if (!config.enabled || running) return;
+        if (!config.enabled) return;
+        if (running) { rerun = true; return; }
         running = true;
         try {
             await pool.query(`UPDATE public.whatsapp_alerts SET status='uncertain',error_code='interrupted_request',updated_at=now()
@@ -182,12 +185,13 @@ function createWorker(pool, getConfig = readConfig, fetchImpl = fetch) {
                 }
             }
         } catch { console.error('WhatsApp: não foi possível processar a fila; ela permanece guardada.'); }
-        finally { running = false; }
+        finally { running = false; if(rerun) { rerun=false;setImmediate(run); } }
     };
 }
 
 function registerWhatsappNotifications(app, pool) {
     const run = createWorker(pool);
+    const unsubscribe = onNewLead(run);
     app.get('/api/whatsapp/webhook', (req, res) => {
         const c = readConfig();
         const provided = String(req.query['hub.verify_token'] || '');
@@ -218,7 +222,7 @@ function registerWhatsappNotifications(app, pool) {
     const timer = setInterval(run,15000);
     timer.unref();
     setImmediate(run);
-    return { stop: () => clearInterval(timer), run };
+    return { stop: () => { clearInterval(timer); unsubscribe(); }, run };
 }
 
 module.exports = { readConfig, brazilDate, payloadFor, deliveryReceipts, graph, reserveAlert, rejectAlert, reconcileReceipts, createWorker, registerWhatsappNotifications };

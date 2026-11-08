@@ -30,13 +30,23 @@ O novo formulário da campanha, salvo na Meta em 08/11/2026, pergunta o plano de
 
 ## Avisos de novos leads por WhatsApp
 
-O envio oficial da Meta está em configuração para **(34) 99644-0163**. A conta, o aplicativo e o modelo de mensagem foram preparados; a aprovação do modelo e a entrega do teste precisam ser confirmadas antes de declarar o canal ativo.
+O envio oficial da Meta está em configuração para **(34) 99644-0163**. A conta, o remetente e a credencial foram conferidos, e o modelo `dde_novo_lead_v1` está aprovado como Utilidade, em português. O teste revelou uma permissão específica ausente na conta “DDE Telecom — Avisos de Leads”. A correção dessa atribuição e a entrega do teste precisam ser confirmadas antes de declarar o canal ativo.
 
 Os avisos mostram o número do lead e o acesso ao CRM. Os dados pessoais dos clientes ficam no CRM. O primeiro aviso será identificado como teste e não cria um lead fictício.
 
 O código mantém uma fila no PostgreSQL, limita o envio a 100 mensagens potencialmente cobradas por mês, incluindo testes, e só libera os avisos após a confirmação de entrega do teste. O limite é conservador para o orçamento autorizado de R$ 10 por mês: a tarifa de Utilidade consultada é R$ 0,035 por mensagem entregue, antes dos impostos. Modelos reclassificados como Marketing são bloqueados. A tarifa deve ser revisada antes de janeiro de 2027; o envio pausa em 01/01/2027 até essa revisão.
 
 Para manutenção: as tabelas e o gatilho estão em `sql/migrations/2026-11-07-whatsapp-alerts.sql`. A instalação preserva leads e usuários. O modo padrão é `off`; `test` verifica apenas o aviso de teste; `auto` libera os avisos depois que a Meta confirmar a entrega. As credenciais ficam no Render. O recebimento de confirmações usa `/api/whatsapp/webhook` com assinatura da Meta e chave de verificação. Não copie chaves para este arquivo nem para o GitHub.
+
+## Disparo na chegada do lead e avisos por e-mail
+
+O servidor inicia o processamento dos avisos assim que confirma o cadastro de um lead do site, do vendedor ou da Meta. As filas são gravadas no banco junto com o cadastro; uma conferência a cada 15 segundos recupera avisos pendentes após falhas ou reinicializações. Não depende da tarefa do computador de três em três horas. A chegada ao celular ou à caixa de entrada também depende da disponibilidade da Meta e do Google.
+
+O e-mail está preparado para envio direto a **ddetelecom@gmail.com**, usando um projeto Google da própria DDE. Esse canal permanece desligado até a autorização da conta e a confirmação do teste real. O código do retransmissor está em `scripts/google-email-relay.gs`; a chave é gerada nas propriedades privadas do projeto e deve ser guardada somente ali e no Render. Ele aceita apenas pedidos assinados, envia somente ao endereço fixo da DDE e mantém um controle para evitar mensagens repetidas. O aviso contém apenas número do lead, origem, horário e acesso ao CRM. Não pede leitura da caixa de e-mail.
+
+Para manutenção: aplique `sql/migrations/2026-11-08-avisos-email.sql` antes de ativar o canal. Ela foi validada em uma cópia separada do Neon e aplicada ao banco publicado preservando todos os cadastros. Configure `EMAIL_RELAY_URL`, `EMAIL_RELAY_SECRET`, `EMAIL_RECIPIENT` e `EMAIL_SETUP_TEST_ID` no Render. Use `EMAIL_NOTIFICATIONS_MODE=test` durante a verificação e `auto` após confirmar a entrega. O padrão é `off`. O retransmissor usa a cota do Google; na consulta de 08/11/2026, contas Gmail comuns têm limite de 100 destinatários por dia. A fila preserva excedentes para nova tentativa; essa cota pode mudar. Referência: https://developers.google.com/apps-script/guides/services/quotas.
+
+A tarefa anterior de e-mail só deve ser pausada quando o envio direto estiver verificado, para evitar uma interrupção. Se um envio ficar com resultado incerto, confira a caixa de e-mail antes de repetir; o sistema preserva esse estado para não duplicar um aviso já enviado. Leads na lixeira não geram novos avisos.
 
 ## Painel do administrador
 
