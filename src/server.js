@@ -13,6 +13,7 @@ const { registerMetaIntegration } = require('./meta-integration');
 const { registerWhatsappNotifications } = require('./whatsapp-notifications');
 const { registerLeadReports } = require('./lead-reports');
 const { registerMetaImportStatus } = require('./meta-import-status');
+const { registerLeadTrash } = require('./lead-trash');
 const app = express();
 
     
@@ -230,6 +231,7 @@ function somenteAdmin(req,res,next){
 app.get('/health', (req, res) => res.json({ status: 'ok', empresa: 'DDE Telecom' }));
 registerLeadReports(app, pool, { autenticar, somenteAdmin });
 registerMetaImportStatus(app, pool, { autenticar, somenteAdmin });
+registerLeadTrash(app, pool, { autenticar, somenteAdmin });
 
 // ===== DDE USUARIOS REPARO BEGIN =====
 
@@ -1840,6 +1842,7 @@ app.get(
                         `
                         SELECT *
                         FROM leads
+                        WHERE excluido_em IS NULL
                         ORDER BY id DESC
                         `
                     );
@@ -1859,7 +1862,7 @@ app.get(
                         `
                         SELECT *
                         FROM leads
-                        WHERE vendedor_id=$1
+                        WHERE vendedor_id=$1 AND excluido_em IS NULL
                         ORDER BY id DESC
                         `,
                         [
@@ -1898,7 +1901,7 @@ app.get(
 app.get('/api/leads/:id', autenticar, validarId, executar(async (req, res) => {
     const admin = req.usuario.perfil === 'admin';
     const { rows } = await pool.query(
-        `SELECT * FROM leads WHERE id = $1 ${admin ? '' : 'AND vendedor_id = $2'}`,
+        `SELECT * FROM leads WHERE id = $1 AND excluido_em IS NULL ${admin ? '' : 'AND vendedor_id = $2'}`,
         admin ? [req.params.id] : [req.params.id, req.usuario.id]
     );
     if (!rows.length) falhar(404, 'Lead não encontrado ou sem permissão de acesso.');
@@ -1912,7 +1915,7 @@ app.patch('/api/leads/:id/status', autenticar, validarId, executar(async (req, r
     if (!admin) valores.push(req.usuario.id);
     const { rows } = await pool.query(`
         UPDATE leads SET status = $1, ultimo_contato = CASE WHEN $2::boolean THEN NOW() ELSE ultimo_contato END
-        WHERE id = $3 ${admin ? '' : 'AND vendedor_id = $4'} RETURNING *`, valores);
+        WHERE id = $3 AND excluido_em IS NULL ${admin ? '' : 'AND vendedor_id = $4'} RETURNING *`, valores);
     if (!rows.length) falhar(404, 'Lead não encontrado ou sem permissão de acesso.');
     res.json({ mensagem: 'Status atualizado com sucesso.', lead: rows[0] });
 }));
@@ -1927,7 +1930,7 @@ app.patch('/api/leads/:id/comercial', autenticar, validarId, executar(async (req
     if (!admin) valores.push(req.usuario.id);
     const { rows } = await pool.query(`
         UPDATE leads SET observacoes = $1, ultimo_contato = NOW()
-        WHERE id = $2 ${admin ? '' : 'AND vendedor_id = $3'} RETURNING *`, valores);
+        WHERE id = $2 AND excluido_em IS NULL ${admin ? '' : 'AND vendedor_id = $3'} RETURNING *`, valores);
     if (!rows.length) falhar(404, 'Lead não encontrado ou sem permissão de acesso.');
     res.json({ mensagem: 'Acompanhamento salvo com sucesso.', lead: rows[0] });
 }));
@@ -1940,7 +1943,7 @@ app.patch('/api/leads/:id/vendedor', autenticar, somenteAdmin, validarId, execut
         );
         if (!destino.rows.length) falhar(400, 'Responsável não encontrado ou desativado.');
         const { rows } = await cliente.query(
-            'UPDATE leads SET vendedor_id = $1, vendedor = $2 WHERE id = $3 RETURNING *',
+            'UPDATE leads SET vendedor_id = $1, vendedor = $2 WHERE id = $3 AND excluido_em IS NULL RETURNING *',
             [destino.rows[0].id, destino.rows[0].nome, req.params.id]
         );
         if (!rows.length) falhar(404, 'Lead não encontrado.');

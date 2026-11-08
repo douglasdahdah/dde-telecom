@@ -76,6 +76,7 @@ test('busca literal e status usam parâmetros; entradas inválidas são rejeitad
     assert.ok(query.text.includes('strpos('));assert.ok(!query.text.includes('DROP TABLE'));
     for(const value of [{q:[]},{q:'a'.repeat(301)},{status:'inexistente'},{status:['novo']}])assert.throws(()=>reportQuery(value),{status:400});
     assert.deepEqual(reportQuery().values,[]);
+    assert.match(reportQuery().text,/WHERE l\.excluido_em IS NULL/);
     assert.equal(brasiliaStamp(time),'2026-11-07-223000');
 });
 

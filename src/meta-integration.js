@@ -238,7 +238,7 @@ async function repairMetaLeadDetails(pool) {
         SELECT id, metadados_marketing->>'form_id' AS form_id,
                metadados_marketing->'respostas_formulario' AS answers
         FROM public.leads
-        WHERE origem = 'meta_lead_ads'
+        WHERE origem = 'meta_lead_ads' AND excluido_em IS NULL
           AND metadados_marketing->>'form_id' = ANY($1::text[])
           AND jsonb_typeof(metadados_marketing->'respostas_formulario') = 'array'
           AND (NULLIF(interesse, '') IS NULL OR NULLIF(cidade, '') IS NULL OR NULLIF(bairro, '') IS NULL)

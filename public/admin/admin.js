@@ -139,6 +139,12 @@ const intervaloLeads = 60000;
 const botaoExportar = document.getElementById('exportar-excel');
 const mensagemRelatorio = document.getElementById('mensagem-relatorio');
 let exportandoRelatorio = false;
+let alterandoLixeira = false;
+const botaoLixeira = document.getElementById('abrir-lixeira');
+const painelLixeira = document.getElementById('painel-lixeira');
+const listaLixeira = document.getElementById('lista-lixeira');
+const botaoExcluirLead = document.getElementById('excluir-lead');
+const mensagemExclusao = document.getElementById('mensagem-exclusao');
 let pedidoStatusMeta = null;
 const avisoMeta = document.getElementById('status-importacao-meta');
 const textoStatusMeta = document.getElementById('texto-status-meta');
@@ -375,7 +381,7 @@ function carregarLeads(opcoes = {}) {
 }
 
 function atualizarAutomaticamente() {
-    if (!painelPronto || sessaoEncerrada || document.hidden) return;
+    if (!painelPronto || sessaoEncerrada || document.hidden || alterandoLixeira) return;
     atualizarStatusMeta();
     if (modal?.classList.contains('aberto')) return;
     // Mantém a seleção de controles eventualmente abertos dentro da lista.
@@ -383,6 +389,78 @@ function atualizarAutomaticamente() {
         ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
     return carregarLeads({ silencioso: true });
 }
+
+async function carregarLixeira() {
+    if (!listaLixeira || sessaoEncerrada) return;
+    listaLixeira.textContent = 'Carregando lixeira…';
+    try {
+        const resposta = await fetch('/api/admin/leads/excluidos', {
+            headers:{Authorization:`Bearer ${token}`},cache:'no-store',signal:AbortSignal.timeout(12000)
+        });
+        if (!verificarAutorizacao(resposta)) return;
+        if (!resposta.ok) throw new Error('Não foi possível carregar a lixeira.');
+        const itens = await resposta.json();
+        if (!Array.isArray(itens)) throw new Error('Resposta da lixeira inválida.');
+        listaLixeira.innerHTML = itens.length ? itens.map(item => `
+            <article class="lixeira-item">
+                <div><strong>${escaparHtml(item.nome)}</strong>
+                <small>Lead ${Number(item.id)} · Excluído em ${escaparHtml(formatarData(item.excluido_em))}</small></div>
+                <button type="button" class="botao-sair restaurar-lead" data-id="${Number(item.id)}">Restaurar lead ${Number(item.id)}</button>
+            </article>`).join('') : '<p>Nenhum lead na lixeira.</p>';
+    } catch (erro) { listaLixeira.textContent = erro.message || 'Não foi possível carregar a lixeira.'; }
+}
+
+botaoLixeira?.addEventListener('click', async () => {
+    if (!painelPronto || sessaoEncerrada) return;
+    painelLixeira.hidden = !painelLixeira.hidden;
+    botaoLixeira.textContent = painelLixeira.hidden ? 'Lixeira' : 'Fechar lixeira';
+    if (!painelLixeira.hidden) await carregarLixeira();
+});
+
+botaoExcluirLead?.addEventListener('click', async () => {
+    if (!painelPronto || !leadAtual || alterandoLixeira || sessaoEncerrada) return;
+    const lead = {id:leadAtual.id,nome:leadAtual.nome};
+    if (!confirm(`Mover "${lead.nome}" (lead ${lead.id}) para a lixeira?\nO cadastro sairá da lista e do Excel. Você poderá restaurá-lo pela Lixeira.`)) return;
+    alterandoLixeira = true; botaoExcluirLead.disabled = true;
+    try {
+        const resposta = await fetch(`/api/leads/${lead.id}`, {
+            method:'DELETE',headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(12000)
+        });
+        if (!verificarAutorizacao(resposta)) return;
+        const dados = await resposta.json().catch(()=>({}));
+        if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível excluir o lead.');
+        modal?.classList.remove('aberto'); leadAtual = null;
+        if (pedidoLeads) await pedidoLeads;
+        await carregarLeads();
+        if (!painelLixeira.hidden) await carregarLixeira();
+        mensagemExclusao.textContent = `Lead ${lead.id} movido para a lixeira. Para recuperar, abra a Lixeira e clique em Restaurar.`;
+    } catch (erro) {
+        mensagemExclusao.textContent = erro.name === 'TimeoutError'
+            ? 'Não foi possível confirmar a exclusão. Confira a Lixeira antes de tentar novamente.' : erro.message;
+        mensagemStatus.textContent = mensagemExclusao.textContent;
+    } finally { alterandoLixeira = false; botaoExcluirLead.disabled = false; }
+});
+
+listaLixeira?.addEventListener('click', async evento => {
+    const botao = evento.target.closest('.restaurar-lead');
+    if (!botao || alterandoLixeira || sessaoEncerrada) return;
+    alterandoLixeira = true; botao.disabled = true; botao.textContent = 'Restaurando…';
+    try {
+        const resposta = await fetch(`/api/admin/leads/${botao.dataset.id}/restaurar`, {
+            method:'POST',headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(12000)
+        });
+        if (!verificarAutorizacao(resposta)) return;
+        const dados = await resposta.json().catch(()=>({}));
+        if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível restaurar o lead.');
+        if (pedidoLeads) await pedidoLeads;
+        await carregarLeads(); await carregarLixeira();
+        mensagemExclusao.textContent = dados.mensagem;
+    } catch (erro) {
+        mensagemExclusao.textContent = erro.name === 'TimeoutError'
+            ? 'Não foi possível confirmar a restauração. Atualize os dados antes de tentar novamente.' : erro.message;
+        botao.disabled = false; botao.textContent = `Restaurar lead ${botao.dataset.id}`;
+    } finally { alterandoLixeira = false; }
+});
 
 
 // =====================================================
@@ -1502,6 +1580,7 @@ async function iniciarPainel() {
 
     painelPronto = true;
     if (botaoExportar) botaoExportar.disabled = false;
+    if (botaoLixeira) botaoLixeira.disabled = false;
     await carregarLeads();
     if (sessaoEncerrada) return;
     atualizacaoAutomatica = setInterval(atualizarAutomaticamente, intervaloLeads);

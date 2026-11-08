@@ -106,7 +106,8 @@ async function reserveAlert(pool, config) {
         const selected = await client.query(`
             SELECT id, lead_id, test_key FROM public.whatsapp_alerts
             WHERE status = 'pending' AND available_at <= now()
-              AND (test_key = $1 OR ($2 AND test_key IS NULL AND lead_id IS NOT NULL))
+              AND (test_key = $1 OR ($2 AND test_key IS NULL AND lead_id IS NOT NULL
+                AND EXISTS(SELECT 1 FROM public.leads l WHERE l.id=whatsapp_alerts.lead_id AND l.excluido_em IS NULL)))
             ORDER BY (test_key IS NOT NULL) DESC, id LIMIT 1 FOR UPDATE SKIP LOCKED
         `, [config.testKey, allowLeads]);
         if (!selected.rows.length) { await client.query('COMMIT'); return null; }

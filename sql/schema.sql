@@ -105,6 +105,8 @@ ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS observacoes text;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS ultimo_contato timestamp without time zone;
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS vendedor varchar(120);
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS vendedor_id integer;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS excluido_em timestamp with time zone;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS excluido_por integer;
 CREATE INDEX IF NOT EXISTS idx_leads_status ON public.leads(status);
 CREATE INDEX IF NOT EXISTS idx_leads_telefone ON public.leads(telefone);
 CREATE INDEX IF NOT EXISTS idx_leads_vendedor_id ON public.leads(vendedor_id);

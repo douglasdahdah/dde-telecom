@@ -13,7 +13,7 @@
 
     <link
         rel="stylesheet"
-        href="/admin/admin.css?v=22"
+        href="/admin/admin.css?v=23"
     >
 <link rel="stylesheet" href="/admin/usuarios.css?v=1">
 <link rel="stylesheet" href="/admin/identidade-dde.css?v=4002">
@@ -114,6 +114,7 @@
                 </div>
 
                 <button type="button" id="exportar-excel" class="botao-excel" disabled>↓ Baixar Excel</button>
+                <button type="button" id="abrir-lixeira" class="botao-sair" disabled>Lixeira</button>
 
                 <button
                     type="button"
@@ -140,6 +141,12 @@
             <span id="texto-status-meta">Conferindo formulários da Meta…</span>
             <a id="link-central-meta" target="_blank" rel="noopener noreferrer" hidden>Abrir contatos na Meta ↗</a>
         </aside>
+        <p id="mensagem-exclusao" class="mensagem-relatorio" role="status"></p>
+        <section id="painel-lixeira" class="painel-leads lixeira-leads" hidden aria-label="Lixeira de leads">
+            <h2>Lixeira de leads</h2>
+            <p>Os cadastros ficam preservados aqui e podem ser restaurados com os dados e o responsável anteriores.</p>
+            <div id="lista-lixeira"></div>
+        </section>
 
 
         <!-- =================================================
@@ -686,6 +693,7 @@
             ================================================== -->
 
             <div class="acoes-modal">
+                <button type="button" id="excluir-lead" class="acao-excluir">Excluir lead</button>
 
                 <button
                     type="button"
@@ -711,7 +719,7 @@
     </div>
 
 
-    <script src="/admin/admin.js?v=4003"></script>
+    <script src="/admin/admin.js?v=4004"></script>
 
 <script src="/admin/atribuicao.js?v=3001"></script>
 </body>

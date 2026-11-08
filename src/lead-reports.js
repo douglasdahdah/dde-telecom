@@ -26,7 +26,7 @@ function reportQuery(query = {}) {
         error.status = 400; throw error;
     }
     const filters = { q:q.trim().toLowerCase(),status };
-    const values = [], conditions = [];
+    const values = [], conditions = ['l.excluido_em IS NULL'];
     if (filters.q) {
         values.push(filters.q);
         conditions.push(`strpos(lower(concat_ws(' ',NULLIF(l.nome,''),NULLIF(l.telefone,''),
