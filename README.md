@@ -62,6 +62,14 @@ A coluna **Vendedor indicado** é preenchida quando o responsável tem perfil de
 
 Para excluir um cadastro, abra **Ver detalhes → Excluir lead** e confirme. Ele será movido para a **Lixeira**, acessível no topo do painel, e deixará de aparecer nas listas, indicadores e novos relatórios Excel. Para recuperá-lo, abra **Lixeira → Restaurar lead**. Os dados, o histórico de atendimento e o responsável são mantidos. Essa função é exclusiva do administrador; não há apagamento definitivo pelo painel. Um Excel já baixado continua sendo uma cópia anterior à exclusão.
 
+## Área comercial — vendedores e indicadores
+
+O vendedor ou indicador entra em **Acesso do Vendedor** com seu acesso individual e escolhe **Cadastrar novo lead**. O formulário próprio pede os dados do cliente, plano de interesse e cidade, com bairro e endereço adicional disponíveis. Ele usa os planos existentes do catálogo; não cria ofertas ou preços novos.
+
+Ao enviar, o cadastro aparece no administrador como **Novo**, com origem **Cadastro do vendedor** e identificação de quem indicou. A identidade vem da conta conectada; o formulário não pode escolher outro vendedor nem alterar o status inicial. O nome e o identificador da indicação original também ficam preservados nos metadados do lead, disponíveis nos detalhes e no Excel. O vendedor vê apenas os registros permitidos pelo seu acesso. Vendedores e indicadores usam o perfil Vendedor cadastrado pelo administrador em **Usuários/Vendedores**.
+
+O cadastro também aciona as filas de avisos. O envio para WhatsApp e e-mail depende da ativação e confirmação de entrega de cada canal, descritas acima.
+
 ## Cópia de segurança
 
 O ZIP contém o código e um `.env.example` sem senhas. Ele não contém o banco de dados nem as chaves privadas do Render. O ZIP original deve continuar guardado.

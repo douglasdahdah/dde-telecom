@@ -72,6 +72,20 @@ td small { margin-top: 4px; color: var(--muted); }
 .modal-acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; margin-top: 8px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 
+.pagina-cadastro { max-width: 840px; }
+.pagina-cadastro .cartao-leads { border-top: 4px solid #f28b24; }
+.formulario-indicacao fieldset { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; min-width: 0; padding: 0; margin: 0; border: 0; }
+.formulario-indicacao legend { padding: 0 0 18px; color: var(--azul-dde); font-weight: 800; font-size: 18px; }
+.formulario-indicacao label { display: grid; gap: 7px; color: var(--azul-dde); font-size: 14px; font-weight: 700; }
+.formulario-indicacao input, .formulario-indicacao select { width: 100%; min-width: 0; min-height: 44px; padding: 11px 12px; border: 1px solid #cbdce5; border-radius: 9px; background: #fff; color: var(--texto); font: inherit; }
+.formulario-indicacao input:focus, .formulario-indicacao select:focus { outline: 3px solid #10b98630; border-color: var(--verde-dde); }
+.formulario-indicacao .endereco-opcional, .formulario-indicacao button[type=submit] { grid-column: 1/-1; }
+.endereco-opcional summary { padding: 8px 0; color: var(--azul-dde-2); font-weight: 700; cursor: pointer; }
+.grade-endereco { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 14px; }
+.aviso-indicacao { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 10px 0 20px; }
+.aviso-indicacao a { color: var(--azul-dde); }
+@media(max-width:560px) { .formulario-indicacao fieldset, .grade-endereco { grid-template-columns: 1fr; } }
+
 @media (max-width: 720px) {
     .topbar { flex-wrap: wrap; padding: 12px 16px; }
     .topbar-acoes { width: 100%; gap: 8px; }

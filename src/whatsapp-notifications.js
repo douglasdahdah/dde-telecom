@@ -75,7 +75,9 @@ function deliveryReceipts(body, phoneId) {
             for (const status of (Array.isArray(change.value?.statuses) ? change.value.statuses : []).slice(0, 50)) {
                 if (typeof status.id !== 'string' || !/^wamid\.[A-Za-z0-9_=+\/-]{1,290}$/.test(status.id)) continue;
                 if (!['sent', 'delivered', 'read', 'failed'].includes(status.status)) continue;
-                result.push({ id: status.id, status: status.status === 'sent' ? 'accepted' : status.status });
+                const receipt={ id: status.id, status: status.status === 'sent' ? 'accepted' : status.status };
+                if(status.status==='failed' && Number.isSafeInteger(status.errors?.[0]?.code)) receipt.error_code=`meta_${status.errors[0].code}`;
+                result.push(receipt);
             }
         }
     }
@@ -94,11 +96,12 @@ async function graph(path, config, options = {}, fetchImpl = fetch) {
 
 async function reconcileReceipts(pool) {
     await pool.query(`
-        UPDATE public.whatsapp_alert_deliveries a SET status = r.status, updated_at = now()
+        UPDATE public.whatsapp_alert_deliveries a SET status = r.status,
+            error_code=CASE WHEN r.status='failed' THEN r.error_code ELSE NULL END,updated_at = now()
         FROM public.whatsapp_alert_receipts r
         WHERE a.meta_message_id = r.message_id AND a.status <> 'read'
           AND (a.status <> 'delivered' OR r.status = 'read')
-          AND a.status IS DISTINCT FROM r.status;
+          AND (a.status IS DISTINCT FROM r.status OR (r.status='failed' AND a.error_code IS DISTINCT FROM r.error_code));
     `);
     await pool.query(`
         UPDATE public.whatsapp_alerts a SET status = r.status, updated_at = now()
@@ -232,11 +235,11 @@ function registerWhatsappNotifications(app, pool) {
         if (!verifyMetaSignature(req.rawBody,req.get('x-hub-signature-256'),c.appSecret)) return res.sendStatus(401);
         try {
             for (const receipt of deliveryReceipts(req.body,c.phoneId)) {
-                await pool.query(`INSERT INTO public.whatsapp_alert_receipts(message_id,status) VALUES($1,$2)
+                await pool.query(`INSERT INTO public.whatsapp_alert_receipts(message_id,status,error_code) VALUES($1,$2,$3)
                     ON CONFLICT(message_id) DO UPDATE SET status=CASE
                     WHEN whatsapp_alert_receipts.status='read' THEN 'read'
                     WHEN whatsapp_alert_receipts.status='delivered' AND EXCLUDED.status<>'read' THEN 'delivered'
-                    ELSE EXCLUDED.status END,received_at=now()`, [receipt.id,receipt.status]);
+                    ELSE EXCLUDED.status END,error_code=CASE WHEN EXCLUDED.status='failed' THEN EXCLUDED.error_code ELSE NULL END,received_at=now()`, [receipt.id,receipt.status,receipt.error_code||null]);
             }
             await reconcileReceipts(pool);
             res.sendStatus(200);

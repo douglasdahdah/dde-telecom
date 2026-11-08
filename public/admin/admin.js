@@ -1110,7 +1110,9 @@ function preencherModal(lead) {
         const origem = nomesOrigem[lead.origem] || lead.origem || 'Site';
         const campanha = metadados.utm_campaign ||
             (metadados.ad_id ? `anúncio ${metadados.ad_id}` : '');
-        modalOrigem.textContent = campanha ? `${origem} · ${campanha}` : origem;
+        const indicador = lead.origem === 'vendedor' && metadados.indicador_nome
+            ? `Indicado por ${metadados.indicador_nome}` : '';
+        modalOrigem.textContent = [origem,campanha,indicador].filter(Boolean).join(' · ');
     }
 
 

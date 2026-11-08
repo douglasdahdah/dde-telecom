@@ -86,6 +86,11 @@ test('credencial vai no cabeçalho e nunca no endereço da API',async()=>{
     assert.equal(captured.options.headers.Authorization,`Bearer ${fixture.WHATSAPP_ACCESS_TOKEN}`);
     assert.ok(captured.options.signal instanceof AbortSignal);
 });
+
+test('falha informada pela Meta preserva somente código e identificador da mensagem',()=>{
+    const body={object:'whatsapp_business_account',entry:[{changes:[{field:'messages',value:{metadata:{phone_number_id:'123'},statuses:[{id:'wamid.TESTFAIL',status:'failed',recipient_id:'NAO_GUARDAR',errors:[{code:131042,message:'NAO_GUARDAR'}]}]}}]}]};
+    assert.deepEqual(deliveryReceipts(body,'123'),[{id:'wamid.TESTFAIL',status:'failed',error_code:'meta_131042'}]);
+});
 test('modo desligado não acessa banco nem API',async()=>{
     let calls=0;
     const worker=createWorker({query:async()=>{calls++;}},()=>({...config(),enabled:false}),async()=>{calls++;});
