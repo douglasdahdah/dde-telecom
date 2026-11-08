@@ -3,6 +3,8 @@
 const {
     fetchMetaLead,
     mapMetaLeadFields,
+    metaRetryPolicy,
+    RECOVERABLE_META_ERRORS,
     parseLeadgenEvents,
     validateGraphApiVersion,
     verifyMetaSignature
@@ -122,7 +124,12 @@ async function processOneMetaImport(pool, event, config) {
             form_id: event.form_id || metaLead.form_id || null,
             ad_id: event.ad_id || metaLead.ad_id || null,
             adgroup_id: event.adgroup_id || null,
-            meta_created_time: event.meta_created_time || null
+            meta_created_time: event.meta_created_time || null,
+            respostas_formulario: Array.isArray(metaLead.field_data)
+                ? metaLead.field_data.map(field => ({
+                    pergunta: String(field?.name || ''),
+                    respostas: Array.isArray(field?.values) ? field.values.map(String) : []
+                })) : []
         };
 
         const client = await pool.connect();
@@ -151,8 +158,8 @@ async function processOneMetaImport(pool, event, config) {
             const lead = await client.query(`
                 INSERT INTO public.leads (
                     nome, telefone, email, interesse, vendedor, vendedor_id,
-                    origem, metadados_marketing
-                ) VALUES ($1, $2, $3, $4, $5, $6, 'meta_lead_ads', $7::jsonb)
+                    origem, metadados_marketing, cidade, bairro, cep, estado
+                ) VALUES ($1, $2, $3, $4, $5, $6, 'meta_lead_ads', $7::jsonb, $8, $9, $10, $11)
                 RETURNING id
             `, [
                 contact.nome,
@@ -161,7 +168,11 @@ async function processOneMetaImport(pool, event, config) {
                 contact.interesse || null,
                 admin.nome,
                 admin.id,
-                JSON.stringify(metadata)
+                JSON.stringify(metadata),
+                contact.cidade || null,
+                contact.bairro || null,
+                contact.cep || null,
+                contact.estado || null
             ]);
 
             await client.query(`
@@ -179,11 +190,10 @@ async function processOneMetaImport(pool, event, config) {
         }
     } catch (error) {
         const attempts = Number(event.attempts) || 1;
-        const terminal = attempts >= 8;
-        const delaySeconds = Math.min(30 * (2 ** Math.max(attempts - 1, 0)), 1800);
         const safeCode = /^[a-z0-9_-]{1,80}$/i.test(String(error.code || ''))
             ? String(error.code)
             : 'processing_error';
+        const { terminal, delaySeconds } = metaRetryPolicy(safeCode, attempts);
         try {
             await pool.query(`
                 UPDATE public.meta_lead_imports
@@ -273,8 +283,29 @@ function registerMetaIntegration(app, pool) {
         setImmediate(() => processMetaQueue(pool));
     });
 
-    setImmediate(() => processMetaQueue(pool));
+    // Retoma falhas temporárias de versões anteriores sem alterar leads já importados.
+    const start = async () => {
+        const config = metaConfig();
+        if (!config.pageId || !config.pageAccessToken || !validateGraphApiVersion(config.graphApiVersion)) return;
+        try {
+            await pool.query(`
+                UPDATE public.meta_lead_imports
+                SET status = 'pending', next_attempt_at = now(), updated_at = now()
+                WHERE status = 'failed' AND lead_id IS NULL AND page_id = $1
+                  AND last_error_code = ANY($2::text[])
+            `, [config.pageId, RECOVERABLE_META_ERRORS]);
+        } catch {
+            console.error('Não foi possível retomar importações pendentes da Meta.');
+        }
+        await processMetaQueue(pool);
+    };
+    setImmediate(start);
+    // O webhook continua disparando a importação imediatamente. A verificação
+    // periódica recupera reinícios, interrupções e tentativas que ficaram aguardando.
+    const poller = setInterval(() => processMetaQueue(pool), 60000);
+    poller.unref();
     setImmediate(() => ensureMetaPageSubscription(metaConfig()));
+    return { stop: () => clearInterval(poller) };
 }
 
 module.exports = { registerMetaIntegration };

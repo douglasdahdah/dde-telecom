@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "check": "node --check src/server.js && node --check src/database/db.js && node --check public/admin/admin.js && node --check public/admin/atribuicao.js && node --check public/admin/login.js && node --check public/admin/planos.js && node --check public/admin/usuarios.js && node --check public/vendedor/login.js && node --check public/vendedor/painel.js && node --check public/vendedor/vendedor.js && node --check public/js/app.js && node --check public/js/planos.js && node --check scripts/criar-admin.js && node --check src/whatsapp-notifications.js && node --check src/lead-reports.js",
+    "check": "node --check src/server.js && node --check src/database/db.js && node --check public/admin/admin.js && node --check public/admin/atribuicao.js && node --check public/admin/login.js && node --check public/admin/planos.js && node --check public/admin/usuarios.js && node --check public/vendedor/login.js && node --check public/vendedor/painel.js && node --check public/vendedor/vendedor.js && node --check public/js/app.js && node --check public/js/planos.js && node --check scripts/criar-admin.js && node --check src/whatsapp-notifications.js && node --check src/lead-reports.js && node --check src/meta-leads.js && node --check src/meta-integration.js && node --check src/meta-import-status.js",
     "test": "node --test test/*.test.js",
     "criar-admin": "node scripts/criar-admin.js"
   },

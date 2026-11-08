@@ -10,6 +10,23 @@ class MetaLeadError extends Error {
     }
 }
 
+// Autorizações e falhas temporárias não devem encerrar a recuperação do contato.
+const RECOVERABLE_META_ERRORS = [
+    'meta_api_190', 'meta_api_102', 'meta_api_10', 'meta_api_200',
+    'meta_api_1', 'meta_api_2', 'meta_api_4', 'meta_api_17',
+    'meta_api_32', 'meta_api_613', 'meta_network_error',
+    'meta_api_error', 'meta_invalid_response'
+];
+function metaRetryPolicy(code, attempts) {
+    const count = Math.max(1, Number(attempts) || 1);
+    const recoverable = RECOVERABLE_META_ERRORS.includes(code);
+    const authorization = /^meta_api_(190|102|10|200)$/.test(code);
+    return {
+        terminal: count >= 8 && !recoverable,
+        delaySeconds: Math.min(30 * (2 ** Math.min(count - 1, 8)), authorization ? 300 : 1800)
+    };
+}
+
 function verifyMetaSignature(rawBody, signatureHeader, appSecret) {
     if (!Buffer.isBuffer(rawBody) || typeof appSecret !== 'string' || !appSecret) return false;
     const match = /^sha256=([a-f0-9]{64})$/i.exec(String(signatureHeader || ''));
@@ -97,12 +114,20 @@ function mapMetaLeadFields(fieldData) {
         ['interest', 'interesse', 'product', 'produto', 'plan', 'plano'],
         ['interesse', 'produto', 'plano']
     );
+    const city = find(['city', 'cidade', 'localidade', 'municipio'], ['cidade', 'localidade', 'municipio']);
+    const neighborhood = find(['bairro', 'neighborhood', 'district'], ['bairro', 'neighborhood']);
+    const postalCode = find(['cep', 'zip', 'zip_code', 'postal_code'], ['cep', 'postal_code']);
+    const state = find(['state', 'estado', 'uf']).toUpperCase();
 
     return {
         nome: (fullName || [firstName, lastName].filter(Boolean).join(' ') || 'Contato Meta').slice(0, 150),
         telefone: phone.slice(0, 20),
         email: email.toLowerCase().slice(0, 150),
-        interesse: interest.slice(0, 100)
+        interesse: interest.slice(0, 100),
+        cidade: city.slice(0, 100),
+        bairro: neighborhood.slice(0, 100),
+        cep: postalCode.slice(0, 9),
+        estado: /^[A-Z]{2}$/.test(state) ? state : ''
     };
 }
 
@@ -140,6 +165,8 @@ async function fetchMetaLead(leadgenId, { accessToken, graphApiVersion }) {
 
 module.exports = {
     MetaLeadError,
+    RECOVERABLE_META_ERRORS,
+    metaRetryPolicy,
     fetchMetaLead,
     mapMetaLeadFields,
     parseLeadgenEvents,

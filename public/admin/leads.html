@@ -13,7 +13,7 @@
 
     <link
         rel="stylesheet"
-        href="/admin/admin.css?v=21"
+        href="/admin/admin.css?v=22"
     >
 <link rel="stylesheet" href="/admin/usuarios.css?v=1">
 <link rel="stylesheet" href="/admin/identidade-dde.css?v=4002">
@@ -141,6 +141,10 @@
         <p id="atualizacao-leads" class="atualizacao-painel">Atualização automática a cada 60 segundos</p>
         </header>
         <p id="mensagem-relatorio" class="mensagem-relatorio" role="status">O Excel inclui todos os campos e o vendedor indicado. Respeita a busca e o status selecionados.</p>
+        <aside id="status-importacao-meta" class="status-importacao-meta" role="status" aria-live="polite">
+            <span id="texto-status-meta">Conferindo formulários da Meta…</span>
+            <a id="link-central-meta" target="_blank" rel="noopener noreferrer" hidden>Abrir contatos na Meta ↗</a>
+        </aside>
 
 
         <!-- =================================================
@@ -590,7 +594,7 @@
     </div>
 
 
-    <script src="/admin/admin.js?v=4002"></script>
+    <script src="/admin/admin.js?v=4003"></script>
 
 <script src="/admin/atribuicao.js?v=3001"></script>
 </body>

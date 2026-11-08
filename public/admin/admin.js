@@ -139,6 +139,50 @@ const intervaloLeads = 60000;
 const botaoExportar = document.getElementById('exportar-excel');
 const mensagemRelatorio = document.getElementById('mensagem-relatorio');
 let exportandoRelatorio = false;
+let pedidoStatusMeta = null;
+const avisoMeta = document.getElementById('status-importacao-meta');
+const textoStatusMeta = document.getElementById('texto-status-meta');
+const linkCentralMeta = document.getElementById('link-central-meta');
+
+function atualizarStatusMeta() {
+    if (!avisoMeta || sessaoEncerrada) return Promise.resolve();
+    if (pedidoStatusMeta) return pedidoStatusMeta;
+    pedidoStatusMeta = (async () => {
+        try {
+            const resposta = await fetch('/api/admin/integracoes/meta/status', {
+                headers: { Authorization: `Bearer ${token}` },
+                cache: 'no-store', signal: AbortSignal.timeout(12000)
+            });
+            if (!verificarAutorizacao(resposta)) return;
+            if (!resposta.ok) throw new Error('meta_status_unavailable');
+            const dados = await resposta.json();
+            if (sessaoEncerrada) return;
+            const aguardando = (Number(dados.pending) || 0) + (Number(dados.review) || 0);
+            const textos = {
+                up_to_date: 'Formulários da Meta: nenhuma importação pendente.',
+                receiving: `Recebendo ${aguardando} formulário(s) da Meta. A importação está em andamento.`,
+                delayed: `${aguardando} formulário(s) da Meta aguardam importação há mais de 2 minutos. Consulte os contatos na Meta enquanto tentamos novamente.`,
+                authorization_required: `A autorização da Meta precisa ser renovada. ${aguardando} formulário(s) aguardam importação. Acesse os contatos na Meta para atendê-los. O sistema continuará tentando.`,
+                needs_review: `${aguardando} formulário(s) da Meta precisam de conferência. Consulte os contatos na Meta para atendê-los.`,
+                not_configured: 'A entrada de formulários da Meta precisa ser configurada.'
+            };
+            if (!textos[dados.status]) throw new Error('meta_status_invalid');
+            textoStatusMeta.textContent = textos[dados.status];
+            avisoMeta.classList.toggle('meta-atencao', !['up_to_date', 'receiving'].includes(dados.status));
+            avisoMeta.setAttribute('role', ['up_to_date', 'receiving'].includes(dados.status) ? 'status' : 'alert');
+            if (/^https:\/\/business\.facebook\.com\/latest\/leads_center\?asset_id=\d+$/.test(dados.leadsCenterUrl || '')) {
+                linkCentralMeta.href = dados.leadsCenterUrl;
+                linkCentralMeta.hidden = false;
+            }
+        } catch {
+            if (sessaoEncerrada) return;
+            textoStatusMeta.textContent = 'Não foi possível conferir a importação da Meta. Tentaremos novamente; consulte os contatos na Meta se necessário.';
+            avisoMeta.classList.add('meta-atencao');
+            avisoMeta.setAttribute('role', 'alert');
+        }
+    })().finally(() => { pedidoStatusMeta = null; });
+    return pedidoStatusMeta;
+}
 
 
 // =====================================================
@@ -293,6 +337,7 @@ async function validarSessao() {
 function carregarLeads(opcoes = {}) {
     if (pedidoLeads) return pedidoLeads;
     if (sessaoEncerrada) return Promise.resolve(false);
+    atualizarStatusMeta();
     const silencioso = opcoes.silencioso === true;
     if (mensagem && !silencioso) mensagem.textContent = 'Carregando leads...';
     pedidoLeads = (async () => {
@@ -330,7 +375,9 @@ function carregarLeads(opcoes = {}) {
 }
 
 function atualizarAutomaticamente() {
-    if (!painelPronto || sessaoEncerrada || document.hidden || modal?.classList.contains('aberto')) return;
+    if (!painelPronto || sessaoEncerrada || document.hidden) return;
+    atualizarStatusMeta();
+    if (modal?.classList.contains('aberto')) return;
     // Mantém a seleção de controles eventualmente abertos dentro da lista.
     if (listaLeads?.contains(document.activeElement) &&
         ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return;

@@ -16,9 +16,15 @@ Você não precisa instalar o ZIP nem executar comandos. Guarde-o como cópia da
 
 ## Recebimento de contatos
 
-O formulário identifica o plano escolhido e os parâmetros de campanha do link de entrada. A integração de formulários instantâneos da Meta foi verificada anteriormente com um lead sintético da ferramenta oficial, recebido no CRM. Isso não equivale ao teste de uma campanha paga real.
+O formulário do site identifica o plano escolhido e os parâmetros de campanha do link de entrada. Em 08/11/2026, cinco cadastros reais da campanha paga foram recuperados da Meta e conferidos no CRM com nome, telefone e e-mail. A conexão anterior havia sido invalidada pela Meta; a autorização da Página foi renovada e guardada somente no Render.
 
-O formulário do site também foi conferido em uma prévia local com destino simulado; esse teste local não gravou novos contatos no Neon. Nenhuma campanha paga foi iniciada por esta atualização.
+O aviso da Meta dispara a importação assim que chega ao servidor. A fila é guardada no PostgreSQL antes da confirmação de recebimento. O servidor também verifica pendências a cada minuto e retoma falhas de autorização ou de comunicação após uma reinicialização. Essas falhas continuam aguardando recuperação, sem serem abandonadas depois de oito tentativas. O painel informa pendências e oferece acesso direto à Central de Leads da Meta para atendimento durante uma interrupção.
+
+A Meta pode exigir nova autorização ou limitar sua API. Nenhum sistema pode garantir entrega instantânea durante essas interrupções. O administrador verifica o estado a cada 60 segundos; uma autorização recusada fica visível, sem confundir uma fila pendente com ausência de interessados.
+
+O serviço do Render foi encontrado no plano Free em 08/11/2026. Nesse plano, a hospedagem pode pausar após 15 minutos sem tráfego e levar cerca de um minuto para retornar. A verificação periódica funciona enquanto o servidor está ativo. Manter a hospedagem continuamente ativa exige trocar o plano do serviço; essa cobrança depende de autorização separada. Consulte https://render.com/docs/free.
+
+O recebimento aceita plano de interesse, cidade, bairro e CEP quando essas informações são enviadas pelo formulário da Meta. As respostas originais também ficam nos metadados do cadastro e no Excel. Dados que não foram perguntados ao cliente permanecem vazios; não são inventados nem completados por suposição.
 
 ## Avisos de novos leads por WhatsApp
 

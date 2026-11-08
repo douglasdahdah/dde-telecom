@@ -33,6 +33,35 @@
     --sombra: 0 12px 32px rgba(0, 55, 85, 0.07);
 }
 
+.status-importacao-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 20px;
+    margin: 0 0 22px;
+    padding: 13px 16px;
+    border: 1px solid #b8e7d8;
+    border-left: 4px solid var(--verde-escuro);
+    border-radius: 12px;
+    background: #f0fcf7;
+    color: var(--azul-950);
+    font-size: 14px;
+    line-height: 1.5;
+}
+.status-importacao-meta.meta-atencao {
+    background: var(--laranja-claro);
+    border-color: #e8c46e;
+    border-left-color: #bd6b00;
+}
+.status-importacao-meta a {
+    color: var(--azul-900);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.status-importacao-meta a[hidden] { display: none; }
+
 
 /* =========================================================
    RESET
