@@ -22,9 +22,11 @@ O aviso da Meta dispara a importação assim que chega ao servidor. A fila é gu
 
 A Meta pode exigir nova autorização ou limitar sua API. Nenhum sistema pode garantir entrega instantânea durante essas interrupções. O administrador verifica o estado a cada 60 segundos; uma autorização recusada fica visível, sem confundir uma fila pendente com ausência de interessados.
 
-O serviço do Render foi encontrado no plano Free em 08/11/2026. Nesse plano, a hospedagem pode pausar após 15 minutos sem tráfego e levar cerca de um minuto para retornar. A verificação periódica funciona enquanto o servidor está ativo. Manter a hospedagem continuamente ativa exige trocar o plano do serviço; essa cobrança depende de autorização separada. Consulte https://render.com/docs/free.
+Em 08/11/2026, com autorização do responsável, a hospedagem do serviço DDE foi atualizada para o plano contínuo de **US$ 7 por mês**, sujeito aos impostos e à conversão do cartão. A alteração foi confirmada no Render e o site foi conferido após sua aplicação. Esse plano remove as pausas por inatividade da hospedagem gratuita. A cobrança é separada dos anúncios da Meta.
 
 O recebimento aceita plano de interesse, cidade, bairro e CEP quando essas informações são enviadas pelo formulário da Meta. As respostas originais também ficam nos metadados do cadastro e no Excel. Dados que não foram perguntados ao cliente permanecem vazios; não são inventados nem completados por suposição.
+
+O novo formulário da campanha, salvo na Meta em 08/11/2026, pergunta o plano de interesse, a cidade de instalação e o bairro, além de nome, e-mail e telefone. A alteração foi vinculada ao anúncio existente de Facebook e Instagram, sem aumento do orçamento. O recebimento dessas perguntas ainda deve ser conferido com o próximo cadastro real; os testes automatizados usaram respostas simuladas, e os cinco cadastros reais recuperados pertencem ao formulário anterior.
 
 ## Avisos de novos leads por WhatsApp
 
