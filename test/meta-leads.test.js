@@ -88,6 +88,20 @@ test('autorização e falha temporária continuam pendentes depois de oito tenta
     assert.equal(metaRetryPolicy('meta_api_100', 8).terminal, true);
 });
 
+test('chaves numéricas são resolvidas somente para o formulário real conferido', () => {
+    const source = [
+        {name:'FULL_NAME',values:['TESTE DDE PLANO LOCALIDADE']},
+        {name:'0',values:['700 Mega']}, {name:'1',values:['Uberaba']}, {name:'2',values:['Centro']}
+    ];
+    const snapshot = JSON.stringify(source);
+    const mapped = mapMetaLeadFields(source,{formId:'1164522916097023'});
+    assert.equal(mapped.interesse,'700 Mega');
+    assert.equal(mapped.cidade,'Uberaba');assert.equal(mapped.bairro,'Centro');
+    assert.equal(JSON.stringify(source),snapshot,'preserva as respostas originais');
+    const unknown = mapMetaLeadFields(source,{formId:'outro-formulario'});
+    assert.equal(unknown.interesse,'');assert.equal(unknown.cidade,'');assert.equal(unknown.bairro,'');
+});
+
 test('aceita apenas versões explícitas do Graph API', () => {
     assert.equal(validateGraphApiVersion('v24.0'), true);
     assert.equal(validateGraphApiVersion('24.0'), false);

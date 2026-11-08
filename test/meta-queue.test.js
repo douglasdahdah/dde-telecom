@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {registerMetaIntegration}=require('../src/meta-integration');
+const {registerMetaIntegration,repairMetaLeadDetails}=require('../src/meta-integration');
 
 test('reinício recupera falha antiga, mantém autorização pendente e importa uma única vez na verificação periódica',async t=>{
     const previous={};
@@ -23,6 +23,7 @@ test('reinício recupera falha antiga, mantém autorização pendente e importa 
     });
     const event={meta_lead_id:'lead-local',page_id:'page-local',status:'failed',attempts:8,last_error_code:'meta_api_190'};
     const pool={query:async(sql,values)=>{
+        if(sql.includes('SELECT id, metadados_marketing'))return{rows:[]};
         if(sql.includes('ANY($2::text[])')){
             assert.equal(values[0],'page-local');assert.ok(values[1].includes('meta_api_190'));
             event.status='pending';return{rows:[]};
@@ -54,4 +55,20 @@ test('reinício recupera falha antiga, mantém autorização pendente e importa 
     assert.equal(insertedValues[7],'Cidade de teste');assert.equal(insertedValues[8],'Bairro de teste');
     assert.equal(JSON.parse(insertedValues[6]).respostas_formulario.length,5);
     await poll();assert.equal(insertions,1);
+});
+
+test('recupera campos vazios das respostas reais preservadas sem inserir ou sobrescrever contato',async()=>{
+    const updates=[];
+    const pool={query:async(sql,values)=>{
+        if(sql.includes('SELECT id, metadados_marketing'))return{rows:[{
+            id:20,form_id:'1164522916097023',answers:[
+                {pergunta:'0',respostas:['700 Mega']},{pergunta:'1',respostas:['Uberaba']},{pergunta:'2',respostas:['Centro']}
+            ]
+        }]};
+        assert.match(sql,/COALESCE\(NULLIF\(interesse, ''\), \$2\)/);
+        assert.doesNotMatch(sql,/INSERT|DELETE|SET nome|SET telefone|SET email/);
+        updates.push(values);return{rowCount:1};
+    }};
+    assert.equal(await repairMetaLeadDetails(pool),1);
+    assert.deepEqual(updates,[[20,'700 Mega','Uberaba','Centro','1164522916097023']]);
 });

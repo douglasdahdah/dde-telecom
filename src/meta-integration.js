@@ -3,6 +3,7 @@
 const {
     fetchMetaLead,
     mapMetaLeadFields,
+    META_FORM_FIELDS,
     metaRetryPolicy,
     RECOVERABLE_META_ERRORS,
     parseLeadgenEvents,
@@ -110,7 +111,9 @@ async function processOneMetaImport(pool, event, config) {
             accessToken: config.pageAccessToken,
             graphApiVersion: config.graphApiVersion
         });
-        const contact = mapMetaLeadFields(metaLead.field_data);
+        const contact = mapMetaLeadFields(metaLead.field_data, {
+            formId: event.form_id || metaLead.form_id || ''
+        });
 
         if (contact.email && !emailValido(contact.email)) contact.email = '';
         if (!contact.telefone && !contact.email) {
@@ -230,6 +233,40 @@ async function processMetaQueue(pool) {
     }
 }
 
+async function repairMetaLeadDetails(pool) {
+    const { rows } = await pool.query(`
+        SELECT id, metadados_marketing->>'form_id' AS form_id,
+               metadados_marketing->'respostas_formulario' AS answers
+        FROM public.leads
+        WHERE origem = 'meta_lead_ads'
+          AND metadados_marketing->>'form_id' = ANY($1::text[])
+          AND jsonb_typeof(metadados_marketing->'respostas_formulario') = 'array'
+          AND (NULLIF(interesse, '') IS NULL OR NULLIF(cidade, '') IS NULL OR NULLIF(bairro, '') IS NULL)
+        ORDER BY id
+    `, [Object.keys(META_FORM_FIELDS)]);
+    let repaired = 0;
+    for (const row of rows) {
+        const data = mapMetaLeadFields(row.answers.map(answer => ({
+            name: answer.pergunta, values: answer.respostas
+        })), { formId: row.form_id });
+        if (!data.interesse && !data.cidade && !data.bairro) continue;
+        const result = await pool.query(`
+            UPDATE public.leads
+            SET interesse = COALESCE(NULLIF(interesse, ''), $2),
+                cidade = COALESCE(NULLIF(cidade, ''), $3),
+                bairro = COALESCE(NULLIF(bairro, ''), $4)
+            WHERE id = $1 AND origem = 'meta_lead_ads'
+              AND metadados_marketing->>'form_id' = $5
+              AND ((NULLIF(interesse, '') IS NULL AND $2::text IS NOT NULL)
+                OR (NULLIF(cidade, '') IS NULL AND $3::text IS NOT NULL)
+                OR (NULLIF(bairro, '') IS NULL AND $4::text IS NOT NULL))
+        `, [row.id, data.interesse || null, data.cidade || null, data.bairro || null, row.form_id]);
+        repaired += result.rowCount || 0;
+    }
+    if (repaired) console.log(`Campos de ${repaired} formulário(s) Meta recuperados das respostas preservadas.`);
+    return repaired;
+}
+
 function registerMetaIntegration(app, pool) {
     app.get('/api/meta/webhook', (req, res) => {
         const config = metaConfig();
@@ -297,6 +334,11 @@ function registerMetaIntegration(app, pool) {
         } catch {
             console.error('Não foi possível retomar importações pendentes da Meta.');
         }
+        try {
+            await repairMetaLeadDetails(pool);
+        } catch {
+            console.error('Não foi possível recuperar os campos preservados dos formulários Meta.');
+        }
         await processMetaQueue(pool);
     };
     setImmediate(start);
@@ -308,4 +350,4 @@ function registerMetaIntegration(app, pool) {
     return { stop: () => clearInterval(poller) };
 }
 
-module.exports = { registerMetaIntegration };
+module.exports = { registerMetaIntegration, repairMetaLeadDetails };

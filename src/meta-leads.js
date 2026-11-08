@@ -83,11 +83,20 @@ function normalizeFieldName(value) {
         .replace(/^_+|_+$/g, '');
 }
 
-function mapMetaLeadFields(fieldData) {
+// Chaves conferidas no envio real da versão publicada do formulário da DDE.
+// Cada associação pertence a um ID de formulário: códigos de outro formulário
+// não podem ser interpretados por posição ou por suposição.
+const META_FORM_FIELDS = {
+    '1164522916097023': { '0': 'plano', '1': 'cidade', '2': 'bairro' }
+};
+
+function mapMetaLeadFields(fieldData, { formId = '' } = {}) {
     const fields = new Map();
+    const formFields = META_FORM_FIELDS[String(formId)] || {};
     if (Array.isArray(fieldData)) {
         for (const field of fieldData) {
-            const key = normalizeFieldName(field?.name);
+            const fieldName = String(field?.name ?? '');
+            const key = normalizeFieldName(formFields[fieldName] || fieldName);
             const values = Array.isArray(field?.values) ? field.values : [];
             const value = values.map(v => String(v || '').trim()).filter(Boolean).join(' ').trim();
             if (key && value && !fields.has(key)) fields.set(key, value);
@@ -165,6 +174,7 @@ async function fetchMetaLead(leadgenId, { accessToken, graphApiVersion }) {
 
 module.exports = {
     MetaLeadError,
+    META_FORM_FIELDS,
     RECOVERABLE_META_ERRORS,
     metaRetryPolicy,
     fetchMetaLead,
