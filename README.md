@@ -30,13 +30,15 @@ O novo formulário da campanha, salvo na Meta em 08/11/2026, pergunta o plano de
 
 ## Avisos de novos leads por WhatsApp
 
-O envio oficial da Meta está em configuração para **(34) 99644-0163**. A conta, o remetente e a credencial foram conferidos, e o modelo `dde_novo_lead_v1` está aprovado como Utilidade, em português. O teste revelou uma permissão específica ausente na conta “DDE Telecom — Avisos de Leads”. A correção dessa atribuição e a entrega do teste precisam ser confirmadas antes de declarar o canal ativo.
+O envio oficial da Meta está em configuração para **(34) 99644-0163** e **(34) 99655-7353**, conforme solicitado pelo responsável. A conta, o remetente e a credencial foram conferidos, e o modelo `dde_novo_lead_v1` está aprovado como Utilidade, em português. A permissão específica da conta “DDE Telecom — Avisos de Leads” foi autorizada pelo responsável e conferida como Acesso total na Meta. A entrega do teste deve ser confirmada separadamente para cada número antes de declarar o destino ativo.
 
 Os avisos mostram o número do lead e o acesso ao CRM. Os dados pessoais dos clientes ficam no CRM. O primeiro aviso será identificado como teste e não cria um lead fictício.
 
-O código mantém uma fila no PostgreSQL, limita o envio a 100 mensagens potencialmente cobradas por mês, incluindo testes, e só libera os avisos após a confirmação de entrega do teste. O limite é conservador para o orçamento autorizado de R$ 10 por mês: a tarifa de Utilidade consultada é R$ 0,035 por mensagem entregue, antes dos impostos. Modelos reclassificados como Marketing são bloqueados. A tarifa deve ser revisada antes de janeiro de 2027; o envio pausa em 01/01/2027 até essa revisão.
+O código mantém uma fila no PostgreSQL, limita o envio a 100 mensagens potencialmente cobradas por mês, incluindo testes, e só libera os avisos de cada destino após a confirmação de entrega do teste nesse número. O limite de 100 mensagens é compartilhado entre os dois números; cada lead gera duas mensagens quando ambos estão ativos. O limite é conservador para o orçamento autorizado de R$ 10 por mês: a tarifa de Utilidade consultada é R$ 0,035 por mensagem entregue, antes dos impostos. Modelos reclassificados como Marketing são bloqueados. A tarifa deve ser revisada antes de janeiro de 2027; o envio pausa em 01/01/2027 até essa revisão.
 
 Para manutenção: as tabelas e o gatilho estão em `sql/migrations/2026-11-07-whatsapp-alerts.sql`. A instalação preserva leads e usuários. O modo padrão é `off`; `test` verifica apenas o aviso de teste; `auto` libera os avisos depois que a Meta confirmar a entrega. As credenciais ficam no Render. O recebimento de confirmações usa `/api/whatsapp/webhook` com assinatura da Meta e chave de verificação. Não copie chaves para este arquivo nem para o GitHub.
+
+A migração `sql/migrations/2026-11-08-whatsapp-dois-destinos.sql` preserva os avisos anteriores e cria um registro de entrega por número em `whatsapp_alert_deliveries`. A confirmação de um número não libera o outro. Configure os dois destinos em `WHATSAPP_RECIPIENTS`, separados por vírgula. `WHATSAPP_RECIPIENT` é mantido para compatibilidade com a configuração anterior. O segundo número é um destino interno de avisos; o WhatsApp comercial do site continua sendo (34) 99644-0163.
 
 ## Disparo na chegada do lead e avisos por e-mail
 

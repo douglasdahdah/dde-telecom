@@ -29,6 +29,19 @@ test('destino e capacidade não podem exceder a autorização',()=>{
     for(const cap of ['0','101','1.5','abc','-1']) assert.equal(config({WHATSAPP_MAX_MESSAGES_PER_MONTH:cap}).enabled,false);
     assert.equal(config({WHATSAPP_MAX_MESSAGES_PER_MONTH:'1'}).enabled,true);
 });
+
+test('dois destinos autorizados são separados, sem duplicação nem inclusão de terceiros',()=>{
+    const both=config({WHATSAPP_RECIPIENTS:'5534996440163,5534996557353,5534996440163'});
+    assert.equal(both.enabled,true);
+    assert.deepEqual(both.recipients,['5534996440163','5534996557353']);
+    assert.equal(both.testKeys['5534996440163'],config().testKey);
+    assert.notEqual(both.testKeys['5534996440163'],both.testKeys['5534996557353']);
+    assert.equal(config({WHATSAPP_RECIPIENTS:'5534996440163,5534999999999'}).enabled,false);
+    const second=payloadFor({lead_id:21,recipient:'5534996557353'},both);
+    assert.equal(second.to,'5534996557353');
+    assert.throws(()=>payloadFor({lead_id:21,recipient:'5534999999999'},both),/invalid_recipient/);
+    assert.throws(()=>payloadFor({lead_id:21,recipient:'5534996557353'},config()),/invalid_recipient/);
+});
 test('tarifa expira no horário de Brasília e datas inválidas bloqueiam envio',()=>{
     assert.equal(brazilDate(new Date('2027-01-01T02:59:59Z')),'2026-12-31');
     assert.equal(readConfig(fixture,new Date('2027-01-01T02:59:59Z')).enabled,true);
