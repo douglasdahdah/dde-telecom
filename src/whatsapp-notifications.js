@@ -125,7 +125,9 @@ async function reserveAlert(pool, config) {
                AND EXISTS(SELECT 1 FROM public.leads l WHERE l.id=a.lead_id AND l.excluido_em IS NULL)
                AND EXISTS(SELECT 1 FROM public.whatsapp_alert_deliveries proof
                  JOIN public.whatsapp_alerts p ON p.id=proof.alert_id
-                 WHERE proof.recipient=d.recipient AND p.test_key=c.test_key AND proof.status IN ('delivered','read'))))
+                 WHERE proof.recipient=d.recipient AND p.test_key=c.test_key
+                   AND (proof.status IN ('delivered','read') OR
+                     (proof.status='accepted' AND proof.owner_confirmed_at IS NOT NULL)))))
             ORDER BY (a.test_key IS NOT NULL) DESC,d.id LIMIT 1 FOR UPDATE OF d SKIP LOCKED
         `, [config.recipients,config.recipients.map(x=>config.testKeys[x]),config.mode==='auto']);
         if (!selected.rows.length) { await client.query('COMMIT'); return null; }

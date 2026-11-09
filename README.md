@@ -40,6 +40,8 @@ Para manutenção: as tabelas e o gatilho estão em `sql/migrations/2026-11-07-w
 
 A migração `sql/migrations/2026-11-08-whatsapp-dois-destinos.sql` preserva os avisos anteriores e cria um registro de entrega por número em `whatsapp_alert_deliveries`. A confirmação de um número não libera o outro. Configure os dois destinos em `WHATSAPP_RECIPIENTS`, separados por vírgula. `WHATSAPP_RECIPIENT` é mantido para compatibilidade com a configuração anterior. O segundo número é um destino interno de avisos; o WhatsApp comercial do site continua sendo (34) 99644-0163.
 
+Quando o titular confirma expressamente que recebeu um teste já aceito pela Meta, a confirmação pode ser registrada em `owner_confirmed_at`, criado pela migração `sql/migrations/2026-11-08-whatsapp-confirmacao-titular.sql`. Esse registro permite liberar aquele destino e permanece separado do status e do recibo originais da Meta. Uma falha explícita da Meta continua bloqueando a liberação. A confirmação nunca deve ser preenchida por suposição ou apenas porque a API aceitou o envio.
+
 ## Disparo na chegada do lead e avisos por e-mail
 
 O servidor inicia o processamento dos avisos assim que confirma o cadastro de um lead do site, do vendedor ou da Meta. As filas são gravadas no banco junto com o cadastro; uma conferência a cada 15 segundos recupera avisos pendentes após falhas ou reinicializações. Não depende da tarefa do computador de três em três horas. A chegada ao celular ou à caixa de entrada também depende da disponibilidade da Meta e do Google.
