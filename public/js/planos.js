@@ -78,7 +78,7 @@ function montarCardPlano(p) {
   if (p.sob_consulta === true) {
     const referencia = precosReferenciaAlgarUberaba.get(p.nome);
     const precoReferencia = referencia === undefined ? '' :
-      '<p class="plano-referencia"><a href="https://loja.algar.com.br/para-voce/internet/">Referência da loja Algar em Uberaba</a>' +
+      '<p class="plano-referencia"><span>Referência de preço para Uberaba</span>' +
       '<strong>' + esc(referencia.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + '/mês</strong>' +
       '<small>Consulta em ' + dataConsultaAlgarUberaba + '. Valor exibido por 12 meses com débito automático.</small></p>';
     card.innerHTML = '<div class="plano-card-conteudo">' +

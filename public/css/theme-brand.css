@@ -97,7 +97,6 @@ body { background: #fff; }
 .plano-condicoes { background: #f1f6fa; color: #516f80; }
 .plano-sob-consulta { border-inline-start: 2px solid #9ebdcd; color: #38596b; font-weight: 650; }
 .plano-referencia { display: grid; gap: 4px; margin: 0 0 14px; color: #38596b; font-size: 13px; line-height: 1.45; }
-.plano-referencia a { color: #2d6384; text-decoration: underline; }
 .plano-referencia strong { color: #104b70; font-size: 24px; line-height: 1.2; }
 .plano-referencia small { font-size: 12px; }
 .plano-preco { color: #104b70; }
