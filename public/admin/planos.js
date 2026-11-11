@@ -194,6 +194,10 @@ const planoBeneficios =
     );
 
 
+const planoPromocional=document.getElementById('plano-promocional');
+const planoPrecoOriginal=document.getElementById('plano-preco-original');
+const planoValidade=document.getElementById('plano-validade');
+const planoCondicoes=document.getElementById('plano-condicoes');
 let planos = [];
 
 
@@ -953,9 +957,11 @@ novoPlano?.addEventListener(
 // EDITAR
 // =====================================================
 
-function preencherFormulario(
-    plano
-) {
+function preencherFormulario(plano) {
+    planoPromocional.checked=plano.promocional===true;
+    planoPrecoOriginal.value=plano.preco_original??'';
+    planoValidade.value=plano.oferta_valida_ate||'';
+    planoCondicoes.value=plano.observacoes||'';
 
     planoId.value =
         plano.id;
@@ -1054,6 +1060,10 @@ formulario?.addEventListener(
 
 
         const dados = {
+            promocional:planoPromocional.checked,
+            preco_original:planoPrecoOriginal.value===''?null:Number(planoPrecoOriginal.value),
+            oferta_valida_ate:planoValidade.value||null,
+            observacoes:planoCondicoes.value.trim()||null,
 
             nome:
                 planoNome.value.trim(),

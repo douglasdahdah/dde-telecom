@@ -17,21 +17,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(
             'login-mensagem'
         )
+        || document.getElementById('mensagemLogin')
         ||
         document.getElementById(
             'mensagem-login-vendedor'
         )
         ||
-        document.getElementById(
-            'mensagemLogin'
-        )
-        ||
         document.querySelector(
-            '.login-mensagem, .login-message'
+            '.login-mensagem'
         );
 
 
     const botaoSenha =
+        document.getElementById('toggleSenha') ||
         [
             ...form.querySelectorAll(
                 'button'
@@ -157,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                 window.location.replace(
-                    '/vendedor/painel.html'
+                    '/vendedor/site.html'
                 );
 
 

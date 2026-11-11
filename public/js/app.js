@@ -4,34 +4,6 @@
 // CEP + FORMULÁRIO + LEADS + MODAL DE COBERTURA
 // =========================================================
 
-const DDE_UTM_FIELDS = [
-    'utm_source',
-    'utm_medium',
-    'utm_campaign',
-    'utm_content',
-    'utm_term'
-];
-
-function obterAtribuicaoMarketingDDE() {
-    const atribuicao = {};
-    const parametros = new URLSearchParams(window.location.search);
-
-    for (const campo of DDE_UTM_FIELDS) {
-        let valor = parametros.get(campo);
-        try {
-            if (valor && valor.trim()) {
-                sessionStorage.setItem(`dde_${campo}`, valor.trim().slice(0, 150));
-            } else {
-                valor = sessionStorage.getItem(`dde_${campo}`) || '';
-            }
-        } catch {
-            valor = valor || '';
-        }
-        if (valor && valor.trim()) atribuicao[campo] = valor.trim().slice(0, 150);
-    }
-    return atribuicao;
-}
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // =====================================================
@@ -39,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =====================================================
 
     const formulario = document.getElementById('form-lead');
+    let ultimaSolicitacao = null;
 
     const campoNome = document.getElementById('nome');
     const campoTelefone = document.getElementById('telefone');
@@ -953,10 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     interesse:
                         campoInteresse?.value.trim() ||
-                        '',
-
-                    metadados_marketing:
-                        obterAtribuicaoMarketingDDE()
+                        ''
                 };
 
 
@@ -990,15 +960,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
 
-                    const resposta =
-                        await fetch(
-                            '/api/leads',
+                    const payloadAtual = JSON.stringify(dadosLead);
+                    if (!ultimaSolicitacao || ultimaSolicitacao.payload !== payloadAtual) {
+                        ultimaSolicitacao = { payload: payloadAtual, chave: crypto.randomUUID() };
+                    }
+                    const resposta = await fetch('/api/leads',
                             {
                                 method: 'POST',
 
                                 headers: {
-                                    'Content-Type':
-                                        'application/json'
+                                    'Content-Type': 'application/json',
+                                    'Idempotency-Key': ultimaSolicitacao.chave
                                 },
 
                                 body:
@@ -1036,6 +1008,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // -------------------------------------
 
                     formulario.reset();
+                    ultimaSolicitacao = null;
 
                     mostrarMensagemFormulario(
                         'Solicitação enviada com sucesso! Nossa equipe entrará em contato.',

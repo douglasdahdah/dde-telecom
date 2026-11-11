@@ -13,10 +13,9 @@
 
     <link
         rel="stylesheet"
-        href="/admin/admin.css?v=23"
+        href="/admin/admin.css?v=1101"
     >
-<link rel="stylesheet" href="/admin/usuarios.css?v=1">
-<link rel="stylesheet" href="/admin/identidade-dde.css?v=4002">
+<link rel="stylesheet" href="/admin/usuarios.css?v=1101">
 </head>
 
 <body>
@@ -117,9 +116,6 @@
                 </div>
 
 
-                <button type="button" id="exportar-excel" class="botao-excel" disabled>↓ Baixar Excel</button>
-                <button type="button" id="abrir-lixeira" class="botao-sair" disabled>Lixeira</button>
-
                 <button
                     type="button"
                     id="atualizar"
@@ -139,19 +135,7 @@
 
             </div>
 
-        <p id="atualizacao-leads" class="atualizacao-painel">Atualização automática a cada 60 segundos</p>
         </header>
-        <p id="mensagem-relatorio" class="mensagem-relatorio" role="status">O Excel inclui todos os campos e o vendedor indicado. Respeita a busca e o status selecionados.</p>
-        <aside id="status-importacao-meta" class="status-importacao-meta" role="status" aria-live="polite">
-            <span id="texto-status-meta">Conferindo formulários da Meta…</span>
-            <a id="link-central-meta" target="_blank" rel="noopener noreferrer" hidden>Abrir contatos na Meta ↗</a>
-        </aside>
-        <p id="mensagem-exclusao" class="mensagem-relatorio" role="status"></p>
-        <section id="painel-lixeira" class="painel-leads lixeira-leads" hidden aria-label="Lixeira de leads">
-            <h2>Lixeira de leads</h2>
-            <p>Os cadastros ficam preservados aqui e podem ser restaurados com os dados e o responsável anteriores.</p>
-            <div id="lista-lixeira"></div>
-        </section>
 
 
         <!-- =================================================
@@ -247,7 +231,7 @@
                     <input
                         type="search"
                         id="pesquisa"
-                        placeholder="Buscar cliente, telefone, cidade ou vendedor..."
+                        placeholder="Buscar cliente, telefone, cidade..."
                     >
 
 
@@ -399,12 +383,6 @@
                         -
                     </strong>
 
-                </div>
-
-
-                <div class="detalhe">
-                    <span>Origem / campanha</span>
-                    <strong id="modal-origem">Site</strong>
                 </div>
 
 
@@ -576,7 +554,6 @@
             ================================================== -->
 
             <div class="acoes-modal">
-                <button type="button" id="excluir-lead" class="acao-excluir">Excluir lead</button>
 
                 <button
                     type="button"
@@ -602,9 +579,9 @@
     </div>
 
 
-    <script src="/admin/admin.js?v=4005"></script>
+    <script src="/admin/admin.js?v=1101"></script>
 
-<script src="/admin/atribuicao.js?v=3001"></script>
+<script src="/admin/atribuicao.js?v=1101"></script>
 </body>
 
 </html>

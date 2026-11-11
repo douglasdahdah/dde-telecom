@@ -5,8 +5,8 @@ services:
     plan: free
     buildCommand: npm ci --omit=dev
     startCommand: npm start
-    healthCheckPath: /health
-    autoDeploy: true
+    healthCheckPath: /ready
+    autoDeployTrigger: 'off'
     envVars:
       - key: NODE_ENV
         value: production

@@ -50,8 +50,8 @@ async function main() {
         io.close();
         const senha = await senhaOculta('Senha (mínimo 12 caracteres): ');
         const confirmacao = await senhaOculta('Confirme a senha: ');
-        if (!nome || nome.length > 120 || !email || email.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            throw new Error('Informe um nome e um e-mail válidos. O nome aceita até 120 caracteres e o e-mail até 150.');
+        if (!nome || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            throw new Error('Informe um nome e um e-mail válidos.');
         }
         if (senha !== confirmacao || senha.length < 12 || Buffer.byteLength(senha, 'utf8') > 72) {
             throw new Error('As senhas devem coincidir, ter pelo menos 12 caracteres e ocupar no máximo 72 bytes.');

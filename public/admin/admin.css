@@ -33,46 +33,6 @@
     --sombra: 0 12px 32px rgba(0, 55, 85, 0.07);
 }
 
-.status-importacao-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px 20px;
-    margin: 0 0 22px;
-    padding: 13px 16px;
-    border: 1px solid #b8e7d8;
-    border-left: 4px solid var(--verde-escuro);
-    border-radius: 12px;
-    background: #f0fcf7;
-    color: var(--azul-950);
-    font-size: 14px;
-    line-height: 1.5;
-}
-.status-importacao-meta.meta-atencao {
-    background: var(--laranja-claro);
-    border-color: #e8c46e;
-    border-left-color: #bd6b00;
-}
-.status-importacao-meta a {
-    color: var(--azul-900);
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-.status-importacao-meta a[hidden] { display: none; }
-
-.lixeira-leads { margin: 0 0 24px; }
-.lixeira-leads[hidden] { display: none; }
-.lixeira-leads > p { margin: 10px 0 16px; color: var(--texto-2); line-height: 1.5; }
-.lixeira-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 15px 0; border-top: 1px solid var(--borda); }
-.lixeira-item > div { min-width: 0; overflow-wrap: anywhere; }
-.lixeira-item strong, .lixeira-item small { display: block; }
-.lixeira-item small { margin-top: 6px; color: var(--texto-2); }
-.acao-excluir { padding: 12px 18px; border: 1px solid #d66b61; border-radius: 11px; color: #9d2720; background: #fff4f1; font-weight: 700; }
-.acao-excluir:hover { background: #ffe4de; }
-.acao-excluir:disabled { opacity: .65; cursor: wait; }
-
 
 /* =========================================================
    RESET

@@ -426,7 +426,6 @@
 
     </style>
 
-<link rel="stylesheet" href="/admin/identidade-dde.css?v=4001">
 </head>
 
 
@@ -705,6 +704,12 @@
         </h2>
 
         <form id="form-plano">
+<div class="grupo-formulario"><div class="grupo-formulario-titulo">Promoção e condições</div><div class="grade-formulario">
+<div class="campo-form"><label for="plano-promocional">Oferta promocional</label><input id="plano-promocional" type="checkbox"></div>
+<div class="campo-form"><label for="plano-preco-original">Preço original (R$)</label><input id="plano-preco-original" type="number" min="0" step="0.01"></div>
+<div class="campo-form"><label for="plano-validade">Oferta válida até</label><input id="plano-validade" type="date"></div>
+<div class="campo-form campo-inteiro"><label for="plano-condicoes">Condições exibidas no site</label><textarea id="plano-condicoes" maxlength="5000"></textarea><small>Após a validade, o site volta ao preço original. Datas seguem o horário de Brasília.</small></div>
+</div></div>
 
             <input
                 type="hidden"
@@ -975,7 +980,7 @@
 </div>
 
 
-<script src="/admin/planos.js?v=3001"></script>
+<script src="/admin/planos.js?v=1101"></script>
 
 </body>
 

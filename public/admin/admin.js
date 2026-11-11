@@ -83,9 +83,6 @@ const modalEmail =
 const modalInteresse =
     document.getElementById('modal-interesse');
 
-const modalOrigem =
-    document.getElementById('modal-origem');
-
 const modalCep =
     document.getElementById('modal-cep');
 
@@ -130,65 +127,6 @@ const botaoWhatsapp =
 
 let leads = [];
 let leadAtual = null;
-let pedidoLeads = null;
-let atualizacaoAutomatica = null;
-let sessaoEncerrada = false;
-let painelPronto = false;
-const estadoAtualizacao = document.getElementById('atualizacao-leads');
-const intervaloLeads = 60000;
-const botaoExportar = document.getElementById('exportar-excel');
-const mensagemRelatorio = document.getElementById('mensagem-relatorio');
-let exportandoRelatorio = false;
-let alterandoLixeira = false;
-const botaoLixeira = document.getElementById('abrir-lixeira');
-const painelLixeira = document.getElementById('painel-lixeira');
-const listaLixeira = document.getElementById('lista-lixeira');
-const botaoExcluirLead = document.getElementById('excluir-lead');
-const mensagemExclusao = document.getElementById('mensagem-exclusao');
-let pedidoStatusMeta = null;
-const avisoMeta = document.getElementById('status-importacao-meta');
-const textoStatusMeta = document.getElementById('texto-status-meta');
-const linkCentralMeta = document.getElementById('link-central-meta');
-
-function atualizarStatusMeta() {
-    if (!avisoMeta || sessaoEncerrada) return Promise.resolve();
-    if (pedidoStatusMeta) return pedidoStatusMeta;
-    pedidoStatusMeta = (async () => {
-        try {
-            const resposta = await fetch('/api/admin/integracoes/meta/status', {
-                headers: { Authorization: `Bearer ${token}` },
-                cache: 'no-store', signal: AbortSignal.timeout(12000)
-            });
-            if (!verificarAutorizacao(resposta)) return;
-            if (!resposta.ok) throw new Error('meta_status_unavailable');
-            const dados = await resposta.json();
-            if (sessaoEncerrada) return;
-            const aguardando = (Number(dados.pending) || 0) + (Number(dados.review) || 0);
-            const textos = {
-                up_to_date: 'Formulários da Meta: nenhuma importação pendente.',
-                receiving: `Recebendo ${aguardando} formulário(s) da Meta. A importação está em andamento.`,
-                delayed: `${aguardando} formulário(s) da Meta aguardam importação há mais de 2 minutos. Consulte os contatos na Meta enquanto tentamos novamente.`,
-                authorization_required: `A autorização da Meta precisa ser renovada. ${aguardando} formulário(s) aguardam importação. Acesse os contatos na Meta para atendê-los. O sistema continuará tentando.`,
-                needs_review: `${aguardando} formulário(s) da Meta precisam de conferência. Consulte os contatos na Meta para atendê-los.`,
-                not_configured: 'A entrada de formulários da Meta precisa ser configurada.'
-            };
-            if (!textos[dados.status]) throw new Error('meta_status_invalid');
-            textoStatusMeta.textContent = textos[dados.status];
-            avisoMeta.classList.toggle('meta-atencao', !['up_to_date', 'receiving'].includes(dados.status));
-            avisoMeta.setAttribute('role', ['up_to_date', 'receiving'].includes(dados.status) ? 'status' : 'alert');
-            if (/^https:\/\/business\.facebook\.com\/latest\/leads_center\?asset_id=\d+$/.test(dados.leadsCenterUrl || '')) {
-                linkCentralMeta.href = dados.leadsCenterUrl;
-                linkCentralMeta.hidden = false;
-            }
-        } catch {
-            if (sessaoEncerrada) return;
-            textoStatusMeta.textContent = 'Não foi possível conferir a importação da Meta. Tentaremos novamente; consulte os contatos na Meta se necessário.';
-            avisoMeta.classList.add('meta-atencao');
-            avisoMeta.setAttribute('role', 'alert');
-        }
-    })().finally(() => { pedidoStatusMeta = null; });
-    return pedidoStatusMeta;
-}
 
 
 // =====================================================
@@ -209,9 +147,6 @@ function headersAutenticados() {
 // =====================================================
 
 function encerrarSessao() {
-    sessaoEncerrada = true;
-    painelPronto = false;
-    clearInterval(atualizacaoAutomatica);
 
     localStorage.removeItem('dde_admin_token');
     localStorage.removeItem('dde_admin_usuario');
@@ -340,127 +275,80 @@ async function validarSessao() {
 // CARREGAR LEADS
 // =====================================================
 
-function carregarLeads(opcoes = {}) {
-    if (pedidoLeads) return pedidoLeads;
-    if (sessaoEncerrada) return Promise.resolve(false);
-    atualizarStatusMeta();
-    const silencioso = opcoes.silencioso === true;
-    if (mensagem && !silencioso) mensagem.textContent = 'Carregando leads...';
-    pedidoLeads = (async () => {
-        try {
-            const resposta = await fetch('/api/leads', {
-                headers: { Authorization: `Bearer ${token}` },
-                cache: 'no-store', signal: AbortSignal.timeout(12000)
-            });
-            if (!verificarAutorizacao(resposta)) return false;
-            if (!resposta.ok) throw new Error('Não foi possível carregar os leads.');
-            const dados = await resposta.json();
-            if (!Array.isArray(dados)) throw new Error('Resposta de leads inválida.');
-            if (sessaoEncerrada) return false;
-            leads = dados;
-            atualizarIndicadores();
-            renderizarLeads();
-            if (mensagem) mensagem.textContent = '';
-            if (estadoAtualizacao) {
-                const hora = new Date().toLocaleTimeString('pt-BR');
-                estadoAtualizacao.textContent = `Atualizado às ${hora} · automático a cada 60 s`;
-                estadoAtualizacao.classList.remove('atualizacao-falhou');
-            }
-            return true;
-        } catch (erro) {
-            console.error('Erro ao carregar leads:', erro);
-            if (!silencioso && mensagem) mensagem.textContent = 'Não foi possível carregar os leads.';
-            if (estadoAtualizacao && !sessaoEncerrada) {
-                estadoAtualizacao.textContent = 'Conexão indisponível. Tentaremos atualizar novamente.';
-                estadoAtualizacao.classList.add('atualizacao-falhou');
-            }
-            return false;
+async function carregarLeads() {
+
+    if (mensagem) {
+
+        mensagem.textContent =
+            'Carregando leads...';
+    }
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                '/api/leads',
+                {
+                    headers: {
+                        'Authorization':
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        if (
+            !verificarAutorizacao(
+                resposta
+            )
+        ) {
+            return;
         }
-    })().finally(() => { pedidoLeads = null; });
-    return pedidoLeads;
-}
 
-function atualizarAutomaticamente() {
-    if (!painelPronto || sessaoEncerrada || document.hidden || alterandoLixeira) return;
-    atualizarStatusMeta();
-    if (modal?.classList.contains('aberto')) return;
-    // Mantém a seleção de controles eventualmente abertos dentro da lista.
-    if (listaLeads?.contains(document.activeElement) &&
-        ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
-    return carregarLeads({ silencioso: true });
-}
 
-async function carregarLixeira() {
-    if (!listaLixeira || sessaoEncerrada) return;
-    listaLixeira.textContent = 'Carregando lixeira…';
-    try {
-        const resposta = await fetch('/api/admin/leads/excluidos', {
-            headers:{Authorization:`Bearer ${token}`},cache:'no-store',signal:AbortSignal.timeout(12000)
-        });
-        if (!verificarAutorizacao(resposta)) return;
-        if (!resposta.ok) throw new Error('Não foi possível carregar a lixeira.');
-        const itens = await resposta.json();
-        if (!Array.isArray(itens)) throw new Error('Resposta da lixeira inválida.');
-        listaLixeira.innerHTML = itens.length ? itens.map(item => `
-            <article class="lixeira-item">
-                <div><strong>${escaparHtml(item.nome)}</strong>
-                <small>Lead ${Number(item.id)} · Excluído em ${escaparHtml(formatarData(item.excluido_em))}</small></div>
-                <button type="button" class="botao-sair restaurar-lead" data-id="${Number(item.id)}">Restaurar lead ${Number(item.id)}</button>
-            </article>`).join('') : '<p>Nenhum lead na lixeira.</p>';
-    } catch (erro) { listaLixeira.textContent = erro.message || 'Não foi possível carregar a lixeira.'; }
-}
+        if (!resposta.ok) {
 
-botaoLixeira?.addEventListener('click', async () => {
-    if (!painelPronto || sessaoEncerrada) return;
-    painelLixeira.hidden = !painelLixeira.hidden;
-    botaoLixeira.textContent = painelLixeira.hidden ? 'Lixeira' : 'Fechar lixeira';
-    if (!painelLixeira.hidden) await carregarLixeira();
-});
+            throw new Error(
+                'Não foi possível carregar os leads.'
+            );
+        }
 
-botaoExcluirLead?.addEventListener('click', async () => {
-    if (!painelPronto || !leadAtual || alterandoLixeira || sessaoEncerrada) return;
-    const lead = {id:leadAtual.id,nome:leadAtual.nome};
-    if (!confirm(`Mover "${lead.nome}" (lead ${lead.id}) para a lixeira?\nO cadastro sairá da lista e do Excel. Você poderá restaurá-lo pela Lixeira.`)) return;
-    alterandoLixeira = true; botaoExcluirLead.disabled = true;
-    try {
-        const resposta = await fetch(`/api/leads/${lead.id}`, {
-            method:'DELETE',headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(12000)
-        });
-        if (!verificarAutorizacao(resposta)) return;
-        const dados = await resposta.json().catch(()=>({}));
-        if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível excluir o lead.');
-        modal?.classList.remove('aberto'); leadAtual = null;
-        if (pedidoLeads) await pedidoLeads;
-        await carregarLeads();
-        if (!painelLixeira.hidden) await carregarLixeira();
-        mensagemExclusao.textContent = `Lead ${lead.id} movido para a lixeira. Para recuperar, abra a Lixeira e clique em Restaurar.`;
+
+        const dados =
+            await resposta.json();
+
+
+        leads =
+            Array.isArray(dados)
+                ? dados
+                : [];
+
+
+        atualizarIndicadores();
+
+        renderizarLeads();
+
+
+        if (mensagem) {
+            mensagem.textContent = '';
+        }
+
     } catch (erro) {
-        mensagemExclusao.textContent = erro.name === 'TimeoutError'
-            ? 'Não foi possível confirmar a exclusão. Confira a Lixeira antes de tentar novamente.' : erro.message;
-        mensagemStatus.textContent = mensagemExclusao.textContent;
-    } finally { alterandoLixeira = false; botaoExcluirLead.disabled = false; }
-});
 
-listaLixeira?.addEventListener('click', async evento => {
-    const botao = evento.target.closest('.restaurar-lead');
-    if (!botao || alterandoLixeira || sessaoEncerrada) return;
-    alterandoLixeira = true; botao.disabled = true; botao.textContent = 'Restaurando…';
-    try {
-        const resposta = await fetch(`/api/admin/leads/${botao.dataset.id}/restaurar`, {
-            method:'POST',headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(12000)
-        });
-        if (!verificarAutorizacao(resposta)) return;
-        const dados = await resposta.json().catch(()=>({}));
-        if (!resposta.ok) throw new Error(dados.erro || 'Não foi possível restaurar o lead.');
-        if (pedidoLeads) await pedidoLeads;
-        await carregarLeads(); await carregarLixeira();
-        mensagemExclusao.textContent = dados.mensagem;
-    } catch (erro) {
-        mensagemExclusao.textContent = erro.name === 'TimeoutError'
-            ? 'Não foi possível confirmar a restauração. Atualize os dados antes de tentar novamente.' : erro.message;
-        botao.disabled = false; botao.textContent = `Restaurar lead ${botao.dataset.id}`;
-    } finally { alterandoLixeira = false; }
-});
+        console.error(
+            'Erro ao carregar leads:',
+            erro
+        );
+
+
+        if (mensagem) {
+
+            mensagem.textContent =
+                'Não foi possível carregar os leads.';
+        }
+    }
+}
 
 
 // =====================================================
@@ -539,8 +427,7 @@ function obterLeadsFiltrados() {
                     lead.email,
                     lead.cidade,
                     lead.estado,
-                    lead.interesse,
-                    lead.vendedor
+                    lead.interesse
                 ]
                     .filter(Boolean)
                     .join(' ')
@@ -1094,28 +981,6 @@ function preencherModal(lead) {
     }
 
 
-    if (modalOrigem) {
-        let metadados = lead.metadados_marketing || {};
-        if (typeof metadados === 'string') {
-            try { metadados = JSON.parse(metadados); }
-            catch { metadados = {}; }
-        }
-        const nomesOrigem = {
-            site: 'Site',
-            vendedor: 'Cadastro do vendedor',
-            meta_ads: 'Anúncio Facebook/Instagram',
-            meta_social: 'Publicação Facebook/Instagram',
-            meta_lead_ads: 'Formulário Facebook/Instagram'
-        };
-        const origem = nomesOrigem[lead.origem] || lead.origem || 'Site';
-        const campanha = metadados.utm_campaign ||
-            (metadados.ad_id ? `anúncio ${metadados.ad_id}` : '');
-        const indicador = lead.origem === 'vendedor' && metadados.indicador_nome
-            ? `Indicado por ${metadados.indicador_nome}` : '';
-        modalOrigem.textContent = [origem,campanha,indicador].filter(Boolean).join(' · ');
-    }
-
-
     if (modalCep) {
 
         modalCep.textContent =
@@ -1190,7 +1055,6 @@ function fechar() {
     );
 
     leadAtual = null;
-    atualizarAutomaticamente();
 }
 
 
@@ -1494,43 +1358,6 @@ botaoAtualizar?.addEventListener(
     carregarLeads
 );
 
-botaoExportar?.addEventListener('click', async () => {
-    if (!painelPronto || sessaoEncerrada || exportandoRelatorio) return;
-    exportandoRelatorio = true;
-    botaoExportar.disabled = true;
-    botaoExportar.textContent = 'Gerando Excel…';
-    mensagemRelatorio.textContent = 'Preparando o relatório com os dados atuais do cadastro…';
-    mensagemRelatorio.classList.remove('relatorio-erro');
-    try {
-        const parametros = new URLSearchParams();
-        if (pesquisa?.value.trim()) parametros.set('q',pesquisa.value.trim());
-        if (filtroStatus?.value) parametros.set('status',filtroStatus.value);
-        const resposta = await fetch(`/api/admin/relatorios/leads.xlsx?${parametros}`, {
-            headers: {Authorization:`Bearer ${token}`},cache:'no-store',signal:AbortSignal.timeout(60000)
-        });
-        if (!verificarAutorizacao(resposta)) return;
-        if (!resposta.ok) {
-            const dados = await resposta.json().catch(()=>({}));
-            throw new Error(dados.erro || 'Não foi possível gerar o relatório. Tente novamente.');
-        }
-        const arquivo = await resposta.blob();
-        const nome = resposta.headers.get('Content-Disposition')?.match(/filename="([a-zA-Z0-9._-]+)"/)?.[1] || 'DDE-Leads.xlsx';
-        const endereco = URL.createObjectURL(arquivo);
-        const link = document.createElement('a');
-        link.href = endereco; link.download = nome;
-        document.body.appendChild(link); link.click(); link.remove();
-        setTimeout(()=>URL.revokeObjectURL(endereco),60000);
-        mensagemRelatorio.textContent = 'Excel pronto. O download foi solicitado ao navegador.';
-    } catch (erro) {
-        mensagemRelatorio.textContent = erro.name==='TimeoutError' ? 'A geração demorou mais que o esperado. Tente novamente.' : erro.message;
-        mensagemRelatorio.classList.add('relatorio-erro');
-    } finally {
-        exportandoRelatorio = false;
-        botaoExportar.disabled = sessaoEncerrada;
-        botaoExportar.textContent = '↓ Baixar Excel';
-    }
-});
-
 
 // =====================================================
 // ESCAPAR HTML
@@ -1569,7 +1396,6 @@ function escaparHtml(valor) {
 // =====================================================
 
 async function iniciarPainel() {
-    if (!token || sessaoEncerrada) return;
 
     const sessaoValida =
         await validarSessao();
@@ -1580,25 +1406,8 @@ async function iniciarPainel() {
     }
 
 
-    painelPronto = true;
-    if (botaoExportar) botaoExportar.disabled = false;
-    if (botaoLixeira) botaoLixeira.disabled = false;
     await carregarLeads();
-    if (sessaoEncerrada) return;
-    atualizacaoAutomatica = setInterval(atualizarAutomaticamente, intervaloLeads);
 }
 
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) atualizarAutomaticamente();
-});
-window.addEventListener('focus', atualizarAutomaticamente);
-window.addEventListener('pagehide', () => clearInterval(atualizacaoAutomatica));
-window.addEventListener('pageshow', evento => {
-    if (evento.persisted && painelPronto && !sessaoEncerrada) {
-        clearInterval(atualizacaoAutomatica);
-        atualizacaoAutomatica = setInterval(atualizarAutomaticamente, intervaloLeads);
-        atualizarAutomaticamente();
-    }
-});
 
 iniciarPainel();
