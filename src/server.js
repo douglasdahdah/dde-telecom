@@ -963,6 +963,7 @@ app.get('/api/planos', async (req, res) => {
                     atualizado_em
                 FROM planos
                 WHERE ativo = TRUE
+                  AND (NOT promocional OR (preco_original > preco AND oferta_valida_ate IS NOT NULL))
                   AND (oferta_valida_ate IS NULL OR NOT (oferta_valida_ate < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date) OR (promocional AND preco_original > preco))
                 ORDER BY
                     CASE tipo
