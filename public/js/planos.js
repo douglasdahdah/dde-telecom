@@ -18,11 +18,12 @@ async function carregarPlanosDDE() {
   const lista = document.getElementById('lista-planos');
   if (!lista) return;
   try {
-    const resposta = await fetch('/api/planos');
+    const resposta = await fetch('/api/planos?consulta=1');
     if (!resposta.ok) throw new Error('Falha ao consultar ofertas.');
     const dados = await resposta.json();
     if (!Array.isArray(dados)) throw new Error('Catálogo indisponível.');
-    planosDDE = dados.filter(p => p && typeof p.nome === 'string' && Number.isFinite(Number(p.preco)));
+    planosDDE = dados.filter(p => p && typeof p.nome === 'string' &&
+      (p.sob_consulta === true || (p.preco != null && Number.isFinite(Number(p.preco)))));
     const escolha = document.getElementById('interesse');
     if (escolha?.tagName === 'SELECT') {
       const selecionado = escolha.value;
@@ -67,13 +68,22 @@ function montarCardPlano(p) {
   const combo = tipo === 'internet' && Boolean(p.franquia);
   const categoria = combo ? 'Fibra + celular' : tipo === 'internet' ? 'Internet Fibra Algar' : tipo === 'controle' ? 'Algar Controle' : 'Algar Pós-pago';
   const velocidade = obterVelocidade(p);
-  const preco = Number(p.preco).toFixed(2).split('.');
-  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(x => typeof x === 'string') : [];
   const card = document.createElement('article');
   card.className = 'plano-card' + (p.destaque ? ' destaque' : '') + (combo ? ' combo' : '');
+  if (p.sob_consulta === true) {
+    card.innerHTML = '<div class="plano-card-conteudo">' +
+      '<div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
+      '<h3 class="plano-descricao">' + esc(p.nome) + '</h3>' +
+      '<p class="plano-condicoes">Preço e disponibilidade sob consulta.</p>' +
+      '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) +
+      '" aria-label="Solicitar consulta sobre ' + esc(p.nome) + '">Solicitar consulta ' + iconePlano('arrow') + '</button></div>';
+    return card;
+  }
+  const preco = Number(p.preco).toFixed(2).split('.');
+  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(x => typeof x === 'string') : [];
   const selo = p.selo || (tipo === 'internet' ? 'Conexão para sua casa' : 'Conecte seu celular');
   const condicoes = p.observacoes || (p.fidelidade_meses ? 'Consulte as condições da oferta e de pagamento no atendimento.' : 'Consulte disponibilidade e condições no atendimento.');
-  const periodo = p.promocional && p.oferta_valida_ate ? 'Oferta até ' + p.oferta_valida_ate.split('-').reverse().join('/') + '.' : '';
+  const periodo = p.oferta_valida_ate ? 'Adesão até ' + p.oferta_valida_ate.split('-').reverse().join('/') + '.' : '';
   const anterior = p.promocional && Number(p.preco_original) > Number(p.preco) ? 'De ' + Number(p.preco_original).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) + '. ' : '';
   card.innerHTML = '<div class="plano-selo">' + esc(selo) + '</div><div class="plano-card-conteudo">' +
     '<div class="plano-main"><div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +

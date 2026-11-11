@@ -943,6 +943,16 @@ app.get('/api/planos', async (req, res) => {
     try {
         const resultado =
             await pool.query(`
+                WITH catalogo AS (
+                    SELECT *, (
+                        (NOT promocional OR (preco_original > preco AND oferta_valida_ate IS NOT NULL))
+                        AND (oferta_valida_ate IS NULL
+                            OR oferta_valida_ate >= (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+                            OR (promocional AND preco_original > preco))
+                    ) IS TRUE AS preco_publicavel
+                    FROM planos
+                    WHERE ativo = TRUE
+                )
                 SELECT
                     id,
                     nome,
@@ -958,13 +968,13 @@ app.get('/api/planos', async (req, res) => {
                     fidelidade_meses,
                     preco_original,
                     (promocional AND NOT COALESCE(oferta_valida_ate < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date,false)) AS promocional,
-                    to_char(oferta_valida_ate,'YYYY-MM-DD') AS oferta_valida_ate,
+                    CASE WHEN oferta_valida_ate >= (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+                        THEN to_char(oferta_valida_ate,'YYYY-MM-DD') END AS oferta_valida_ate,
                     observacoes,
-                    atualizado_em
-                FROM planos
-                WHERE ativo = TRUE
-                  AND (NOT promocional OR (preco_original > preco AND oferta_valida_ate IS NOT NULL))
-                  AND (oferta_valida_ate IS NULL OR NOT (oferta_valida_ate < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date) OR (promocional AND preco_original > preco))
+                    atualizado_em,
+                    preco_publicavel
+                FROM catalogo
+                WHERE preco_publicavel OR $1::boolean
                 ORDER BY
                     CASE tipo
                         WHEN 'internet' THEN 1
@@ -975,10 +985,12 @@ app.get('/api/planos', async (req, res) => {
                     ordem,
                     preco,
                     id
-            `);
-        res.json(
-            resultado.rows
-        );
+            `, [req.query.consulta === '1']);
+        res.json(resultado.rows.map(({ preco_publicavel, ...plano }) => {
+            if (preco_publicavel) return plano;
+            const { id, nome, tipo, velocidade, franquia, ordem } = plano;
+            return { id, nome, tipo, velocidade, franquia, ordem, sob_consulta: true };
+        }));
     } catch (erro) {
         console.error('Erro ao buscar planos:', erro?.code || 'operation_error');
         res.status(500).json({
