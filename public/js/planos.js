@@ -71,41 +71,47 @@ function mostrarPlanos(tipo) {
 function montarCardPlano(p) {
   const tipo = normalizarTipo(p.tipo);
   const combo = tipo === 'internet' && Boolean(p.franquia);
-  const categoria = combo ? 'Fibra + celular' : tipo === 'internet' ? 'Internet Fibra Algar' : tipo === 'controle' ? 'Algar Controle' : 'Algar Pós-pago';
+  const categoria = combo ? 'Fibra + celular' : tipo === 'internet' ? 'Internet fibra' : tipo === 'controle' ? 'Celular controle' : 'Celular pós-pago';
   const velocidade = obterVelocidade(p);
+  const consulta = p.sob_consulta === true;
+  const referencia = consulta ? precosReferenciaAlgarUberaba.get(p.nome) : undefined;
+  const valor = consulta ? referencia : Number(p.preco);
+  const preco = valor === undefined ? '' : valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(b => typeof b === 'string') : [];
+  const validade = p.oferta_valida_ate ? 'Adesão até ' + p.oferta_valida_ate.split('-').reverse().join('/') : '';
+  const anterior = p.promocional && Number(p.preco_original) > valor
+    ? 'De ' + Number(p.preco_original).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) : '';
+  const condicoes = p.observacoes || 'Consulte disponibilidade e condições no atendimento.';
+  const fidelidade = p.fidelidade_meses ? 'Fidelidade de ' + Number(p.fidelidade_meses) + ' meses' : '';
+  const acao = consulta ? 'Solicitar consulta' : 'Quero esse plano';
   const card = document.createElement('article');
-  card.className = 'plano-card' + (p.destaque ? ' destaque' : '') + (combo ? ' combo' : '');
-  if (p.sob_consulta === true) {
-    const referencia = precosReferenciaAlgarUberaba.get(p.nome);
-    const precoReferencia = referencia === undefined ? '' :
-      '<p class="plano-referencia"><span>Referência de preço para Uberaba</span>' +
-      '<strong>' + esc(referencia.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + '/mês</strong>' +
-      '<small>Consulta em ' + dataConsultaAlgarUberaba + '. Valor exibido por 12 meses com débito automático.</small></p>';
-    card.innerHTML = '<div class="plano-card-conteudo">' +
-      '<div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
-      '<h3 class="plano-descricao">' + esc(p.nome) + '</h3>' +
-      precoReferencia +
-      '<p class="plano-condicoes plano-sob-consulta">Preço e disponibilidade sob consulta.</p>' +
-      '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) +
-      '" aria-label="Solicitar consulta sobre ' + esc(p.nome) + '">Solicitar consulta ' + iconePlano('arrow') + '</button></div>';
-    return card;
-  }
-  const preco = Number(p.preco).toFixed(2).split('.');
-  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(x => typeof x === 'string') : [];
-  const selo = p.selo || (tipo === 'internet' ? 'Conexão para sua casa' : 'Conecte seu celular');
-  const condicoes = p.observacoes || (p.fidelidade_meses ? 'Consulte as condições da oferta e de pagamento no atendimento.' : 'Consulte disponibilidade e condições no atendimento.');
-  const periodo = p.oferta_valida_ate ? 'Adesão até ' + p.oferta_valida_ate.split('-').reverse().join('/') + '.' : '';
-  const anterior = p.promocional && Number(p.preco_original) > Number(p.preco) ? 'De ' + Number(p.preco_original).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) + '. ' : '';
-  card.innerHTML = '<div class="plano-selo">' + esc(selo) + '</div><div class="plano-card-conteudo">' +
-    '<div class="plano-main"><div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
-    '<div class="plano-velocidade' + (velocidade.unidade ? '' : ' ilimitado') + '"><strong>' + esc(velocidade.numero) + '</strong><span>' + esc(velocidade.unidade) + '</span></div>' +
-    '<p class="plano-descricao">' + esc(combo ? p.nome : p.descricao || p.nome) + '</p>' +
-    '<div class="plano-preco" aria-label="' + esc(Number(p.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + ' por mês"><small>R$</small><strong>' + Number(preco[0]).toLocaleString('pt-BR') + '</strong><b>,' + preco[1] + '</b><span>/mês</span></div>' +
-    '</div>' +
-    '<details class="plano-detalhes"><summary>O que está incluído</summary><ul class="plano-beneficios">' + beneficios.map(b => '<li>' + iconePlano('check') + '<span>' + esc(b) + '</span></li>').join('') + '</ul></details>' +
-    '<p class="plano-condicoes">' + esc([anterior + periodo,condicoes].filter(Boolean).join(' ')) + '</p>' +
-    '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) + '" aria-label="Quero conhecer ' + esc(p.nome) + '">Quero esse plano ' + iconePlano('arrow') + '</button>' +
-    '<p class="plano-fidelidade">' + (p.fidelidade_meses ? 'Fidelidade de ' + Number(p.fidelidade_meses) + ' meses.' : 'Condições confirmadas no atendimento.') + '</p></div>';
+  card.className = 'plano-card oferta-card' + (p.destaque ? ' oferta-destaque' : '') + (consulta ? ' oferta-consulta' : '');
+  card.innerHTML = `
+    <header class="oferta-cabecalho">
+      <div class="oferta-categoria">${iconePlano(tipo === 'internet' ? 'wifi' : 'phone')} ${esc(categoria)}</div>
+      ${velocidade.numero === p.nome ? '' : `<div class="oferta-velocidade${velocidade.unidade ? '' : ' oferta-ilimitado'}">${esc(velocidade.numero)} <span>${esc(velocidade.unidade)}</span></div>`}
+      <h3>${esc(p.nome)}</h3>
+    </header>
+    <div class="oferta-corpo">
+      ${preco ? `<div class="oferta-valor${consulta ? ' plano-referencia' : ''}">
+        ${consulta ? '<span class="oferta-rotulo">Referência de preço para Uberaba</span>' : ''}
+        ${anterior ? '<s class="oferta-rotulo">' + esc(anterior) + '</s>' : ''}
+        <div class="oferta-preco"><strong>${esc(preco)}</strong><span>/mês</span></div>
+      </div>` : ''}
+      ${consulta ? `
+        <p class="oferta-nota plano-sob-consulta">Preço e disponibilidade sob consulta.</p>
+        ${referencia === undefined ? '' : `<p class="oferta-condicoes">Consultado em ${dataConsultaAlgarUberaba}. Valor exibido por 12 meses com débito automático.</p>`}
+      ` : `
+        <p class="oferta-condicoes">${esc(condicoes)}</p>
+        ${validade || fidelidade ? `<ul class="oferta-prazos">${[validade,fidelidade].filter(Boolean).map(prazo => '<li>' + esc(prazo) + '</li>').join('')}</ul>` : ''}
+        ${p.descricao || beneficios.length ? `<details class="oferta-beneficios">
+          <summary>O que está incluído</summary>
+          ${p.descricao ? '<p>' + esc(p.descricao) + '</p>' : ''}
+          ${beneficios.length ? '<ul>' + beneficios.map(b => '<li>' + iconePlano('check') + esc(b) + '</li>').join('') + '</ul>' : ''}
+        </details>` : ''}
+      `}
+      <button type="button" class="btn botao-plano" data-plano="${esc(p.nome)}" aria-label="${consulta ? 'Solicitar consulta sobre ' : 'Quero conhecer '}${esc(p.nome)}">${acao} ${iconePlano('arrow')}</button>
+    </div>`;
   return card;
 }
 

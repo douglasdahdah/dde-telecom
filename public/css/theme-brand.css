@@ -86,20 +86,65 @@ body { background: #fff; }
 .aba-plano { border-radius: 32px; padding: 12px 24px; font-size: 16px; color: #547182; }
 .aba-plano.ativa { background: #0d4d77; box-shadow: 0 4px 12px #0e507b1a; }
 .aba-plano.ativa .icon { color: #66e3ba; }
-.plano-card { border-color: #dce7ee; border-radius: 20px; box-shadow: 0 9px 28px #124d6c08; }
-.plano-card.destaque { border-color: #36b892; box-shadow: 0 10px 30px #00876c0d; }
-.plano-selo { background: #edf4fa; color: #2d6384; font-size: 11px; }
-.destaque .plano-selo { background: #dff7ed; color: #08684f; }
-.combo .plano-selo { background: #fff0df; color: #9a4a12; }
-.plano-category .icon { color: #1e7ac4; }
-.plano-beneficios .icon { color: #08936e; }
-.plano-detalhes summary { color: #1c6eaa; }
-.plano-condicoes { background: #f1f6fa; color: #516f80; }
-.plano-sob-consulta { border-inline-start: 2px solid #9ebdcd; color: #38596b; font-weight: 650; }
-.plano-referencia { display: grid; gap: 4px; margin: 0 0 14px; color: #38596b; font-size: 13px; line-height: 1.45; }
-.plano-referencia strong { color: #104b70; font-size: 24px; line-height: 1.2; }
-.plano-referencia small { font-size: 12px; }
-.plano-preco { color: #104b70; }
+.oferta-card {
+  min-width: 0;
+  border-color: #d6e4eb;
+  border-radius: 20px;
+  box-shadow: 0 12px 28px #07375412;
+  transition: border-color .2s, box-shadow .2s;
+}
+.oferta-card:hover, .oferta-card:focus-within { border-color: #79aaba; box-shadow: 0 14px 32px #07375425; }
+.oferta-card.oferta-destaque { border-color: #249e81; }
+.oferta-cabecalho {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 156px;
+  padding: 18px 20px;
+  background: radial-gradient(ellipse at 100% 0%, #227193 0%, transparent 68%), #0a3853;
+  color: #fff;
+}
+.oferta-destaque .oferta-cabecalho { background: radial-gradient(ellipse at 100% 0%, #17776e 0%, transparent 70%), #103e4c; }
+.oferta-categoria { display: flex; align-items: center; gap: 8px; color: #d2edf5; font-size: 12px; font-weight: 750; }
+.oferta-categoria .icon { width: 17px; height: 17px; color: #8cebd2; }
+.oferta-velocidade { margin: 13px 0 5px; font-size: clamp(30px, 3vw, 47px); font-weight: 850; line-height: 1; letter-spacing: -.045em; }
+.oferta-velocidade span { color: #b1eedd; font-size: .42em; font-weight: 750; letter-spacing: 0; }
+.oferta-velocidade.oferta-ilimitado { font-size: clamp(27px, 2.5vw, 39px); }
+.oferta-cabecalho h3 { margin: auto 0 0; color: #fff; font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+.oferta-corpo { display: flex; flex: 1; flex-direction: column; gap: 12px; padding: 18px 20px 20px; }
+.oferta-valor { display: flex; flex-direction: column; justify-content: end; min-height: 52px; gap: 3px; }
+.oferta-rotulo { color: #476679; font-size: 12px; font-weight: 650; }
+.oferta-preco { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; color: #103e5a; }
+.oferta-preco strong { font-size: clamp(24px, 2.25vw, 34px); font-weight: 850; line-height: 1.05; letter-spacing: -.045em; }
+.oferta-preco span { font-size: 13px; color: #476679; }
+.oferta-condicoes { margin: 0; color: #486476; font-size: 13px; line-height: 1.55; }
+.oferta-nota { margin: 0; padding: 8px 10px; border-inline-start: 2px solid #87a9ba; border-radius: 6px; background: #eff5f8; color: #345568; font-size: 12px; font-weight: 700; }
+.oferta-prazos { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.oferta-prazos li { padding: 4px 7px; border-radius: 5px; background: #eaf3f6; color: #315468; font-size: 11px; font-weight: 700; }
+.oferta-beneficios { color: #345568; font-size: 13px; }
+.oferta-beneficios summary { cursor: pointer; color: #176086; font-weight: 750; }
+.oferta-beneficios p, .oferta-beneficios ul { margin: 8px 0 0; padding: 0; }
+.oferta-beneficios li { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; list-style: none; }
+.oferta-beneficios .icon { width: 13px; height: 13px; flex: none; color: #117864; }
+.oferta-corpo .botao-plano {
+  justify-content: space-between;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 10px 12px;
+  border: 1px solid #104d64;
+  border-radius: 9px;
+  background: #104d64;
+  color: #fff;
+  font-size: 13px;
+  text-align: start;
+}
+.oferta-consulta .botao-plano { background: #fff; color: #104d64; }
+.oferta-corpo .botao-plano:hover { border-color: #0c6d65; background: #0c6d65; color: #fff; }
+.oferta-corpo .botao-plano .icon { width: 16px; height: 16px; flex: none; }
+@media (max-width: 620px) {
+  .oferta-cabecalho { min-height: 130px; }
+  .oferta-preco strong { font-size: 31px; }
+}
 .offer-note { color: #6d8491; }
 
 .contact-section { background: linear-gradient(115deg, #edf4fa, #eef8f4); color: var(--ink); }
