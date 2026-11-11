@@ -15,7 +15,7 @@
    document.getElementById('nome-usuario').textContent=data.usuario.nome;
    fields.disabled=false;ready=true;message.textContent='Sua indicação será registrada com seu acesso. Preencha os campos com *.';
    try {
-    const plansResponse=await fetch('/api/planos',{cache:'no-store',signal:AbortSignal.timeout(12000)});
+    const plansResponse=await fetch('/api/planos?consulta=1',{cache:'no-store',signal:AbortSignal.timeout(12000)});
     if(!plansResponse.ok)return;
     const plans=await plansResponse.json();if(!Array.isArray(plans))return;
     const select=form.elements.interesse;

@@ -4,8 +4,9 @@ let planosDDE = [];
 let tipoPlanoAtual = 'internet';
 const iconePlano = nome => '<svg class="icon" aria-hidden="true"><use href="#i-' + nome + '"/></svg>';
 const precosReferenciaAlgarUberaba = new Map([
-  ['Internet 700 Mega + Super Wi-Fi', 129.90],
-  ['Internet 700 Mega + Controle 55 GB', 149.90],
+  ['Internet 700 Mega + Super Wi-Fi', { preco: 129.90, condicoes: 'Valor exibido por 12 meses com débito automático.' }],
+  ['Internet 700 Mega + Controle 55 GB', { preco: 149.90, condicoes: 'Valor exibido por 12 meses com débito automático.' }],
+  ['Algar Pós Top Ilimitado', { preco: 228.84, condicoes: 'Plano avulso. O regulamento informa R$ 229,07/mês.' }],
 ]);
 const dataConsultaAlgarUberaba = '11/11/2026';
 
@@ -75,7 +76,7 @@ function montarCardPlano(p) {
   const velocidade = obterVelocidade(p);
   const consulta = p.sob_consulta === true;
   const referencia = consulta ? precosReferenciaAlgarUberaba.get(p.nome) : undefined;
-  const valor = consulta ? referencia : Number(p.preco);
+  const valor = consulta ? referencia?.preco : Number(p.preco);
   const preco = valor === undefined ? '' : valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(b => typeof b === 'string') : [];
   const validade = p.oferta_valida_ate ? 'Adesão até ' + p.oferta_valida_ate.split('-').reverse().join('/') : '';
@@ -100,7 +101,7 @@ function montarCardPlano(p) {
       </div>` : ''}
       ${consulta ? `
         <p class="oferta-nota plano-sob-consulta">Preço e disponibilidade sob consulta.</p>
-        ${referencia === undefined ? '' : `<p class="oferta-condicoes">Consultado em ${dataConsultaAlgarUberaba}. Valor exibido por 12 meses com débito automático.</p>`}
+        ${referencia ? `<p class="oferta-condicoes">Consultado em ${dataConsultaAlgarUberaba}. ${esc(referencia.condicoes)}</p>` : ''}
       ` : `
         <p class="oferta-condicoes">${esc(condicoes)}</p>
         ${validade || fidelidade ? `<ul class="oferta-prazos">${[validade,fidelidade].filter(Boolean).map(prazo => '<li>' + esc(prazo) + '</li>').join('')}</ul>` : ''}

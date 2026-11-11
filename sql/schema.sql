@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.planos (
     beneficios jsonb NOT NULL DEFAULT '[]'::jsonb,
     fidelidade_meses integer,
     preco_original numeric(10,2),
+    preco_sob_consulta boolean NOT NULL DEFAULT false,
     promocional boolean NOT NULL DEFAULT false,
     oferta_valida_ate date,
     observacoes text,
@@ -56,6 +57,7 @@ ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS ordem integer NOT NULL DEFAUL
 ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS beneficios jsonb NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS fidelidade_meses integer;
 ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS preco_original numeric(10,2);
+ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS preco_sob_consulta boolean NOT NULL DEFAULT false;
 ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS promocional boolean NOT NULL DEFAULT false;
 ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS oferta_valida_ate date;
 ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS observacoes text;

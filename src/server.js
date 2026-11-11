@@ -945,7 +945,8 @@ app.get('/api/planos', async (req, res) => {
             await pool.query(`
                 WITH catalogo AS (
                     SELECT *, (
-                        (NOT promocional OR (preco_original > preco AND oferta_valida_ate IS NOT NULL))
+                        NOT preco_sob_consulta
+                        AND (NOT promocional OR (preco_original > preco AND oferta_valida_ate IS NOT NULL))
                         AND (oferta_valida_ate IS NULL
                             OR oferta_valida_ate >= (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
                             OR (promocional AND preco_original > preco))
