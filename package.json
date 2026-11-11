@@ -1,12 +1,12 @@
 {
   "name": "dde-telecom",
-  "version": "12.0.0",
+  "version": "12.0.1",
   "description": "Site e sistema de gestão comercial da DDE Telecom",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "check": "node --check src/server.js && node --check src/database/db.js && node --check public/admin/admin.js && node --check public/admin/atribuicao.js && node --check public/admin/login.js && node --check public/admin/planos.js && node --check public/admin/usuarios.js && node --check public/vendedor/login.js && node --check public/vendedor/painel.js && node --check public/vendedor/vendedor.js && node --check public/js/app.js && node --check public/js/planos.js && node --check scripts/criar-admin.js && node --check src/whatsapp-notifications.js && node --check src/lead-reports.js && node --check src/meta-leads.js && node --check src/meta-integration.js && node --check src/meta-import-status.js && node --check src/lead-trash.js && node --check src/email-notifications.js && node --check src/lead-events.js && node --check src/vendor-lead-creation.js && node --check public/vendedor/cadastrar.js && node --check public/admin/conectar-whatsapp.js",
+    "dev": "node --watch src/server.js",
+    "check": "node scripts/check.js",
     "test": "node --test test/*.test.js",
     "criar-admin": "node scripts/criar-admin.js"
   },
@@ -29,7 +29,7 @@
     "pg": "^8.23.0",
     "write-excel-file": "4.1.1"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+  "engines": {
+    "node": "24.x"
   }
 }

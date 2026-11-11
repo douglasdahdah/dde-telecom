@@ -68,11 +68,13 @@ function montarCardPlano(p) {
   const categoria = combo ? 'Fibra + celular' : tipo === 'internet' ? 'Internet Fibra Algar' : tipo === 'controle' ? 'Algar Controle' : 'Algar Pós-pago';
   const velocidade = obterVelocidade(p);
   const preco = Number(p.preco).toFixed(2).split('.');
-  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(x => typeof x === 'string').slice(0,4) : [];
+  const beneficios = Array.isArray(p.beneficios) ? p.beneficios.filter(x => typeof x === 'string') : [];
   const card = document.createElement('article');
   card.className = 'plano-card' + (p.destaque ? ' destaque' : '') + (combo ? ' combo' : '');
   const selo = p.selo || (tipo === 'internet' ? 'Conexão para sua casa' : 'Conecte seu celular');
   const condicoes = p.observacoes || (p.fidelidade_meses ? 'Consulte as condições da oferta e de pagamento no atendimento.' : 'Consulte disponibilidade e condições no atendimento.');
+  const periodo = p.promocional && p.oferta_valida_ate ? 'Oferta até ' + p.oferta_valida_ate.split('-').reverse().join('/') + '.' : '';
+  const anterior = p.promocional && Number(p.preco_original) > Number(p.preco) ? 'De ' + Number(p.preco_original).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) + '. ' : '';
   card.innerHTML = '<div class="plano-selo">' + esc(selo) + '</div><div class="plano-card-conteudo">' +
     '<div class="plano-main"><div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
     '<div class="plano-velocidade' + (velocidade.unidade ? '' : ' ilimitado') + '"><strong>' + esc(velocidade.numero) + '</strong><span>' + esc(velocidade.unidade) + '</span></div>' +
@@ -80,7 +82,7 @@ function montarCardPlano(p) {
     '<div class="plano-preco" aria-label="' + esc(Number(p.preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + ' por mês"><small>R$</small><strong>' + Number(preco[0]).toLocaleString('pt-BR') + '</strong><b>,' + preco[1] + '</b><span>/mês</span></div>' +
     '</div>' +
     '<details class="plano-detalhes"><summary>O que está incluído</summary><ul class="plano-beneficios">' + beneficios.map(b => '<li>' + iconePlano('check') + '<span>' + esc(b) + '</span></li>').join('') + '</ul></details>' +
-    '<p class="plano-condicoes">' + esc(condicoes) + '</p>' +
+    '<p class="plano-condicoes">' + esc([anterior + periodo,condicoes].filter(Boolean).join(' ')) + '</p>' +
     '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) + '" aria-label="Quero conhecer ' + esc(p.nome) + '">Quero esse plano ' + iconePlano('arrow') + '</button>' +
     '<p class="plano-fidelidade">' + (p.fidelidade_meses ? 'Fidelidade de ' + Number(p.fidelidade_meses) + ' meses.' : 'Condições confirmadas no atendimento.') + '</p></div>';
   return card;

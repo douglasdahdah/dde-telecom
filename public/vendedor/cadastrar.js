@@ -1,7 +1,7 @@
 'use strict';
 (()=>{
  const token=localStorage.getItem('dde_vendedor_token'),form=document.getElementById('cadastro-lead'),fields=document.getElementById('campos-lead'),message=document.getElementById('mensagem-cadastro'),send=document.getElementById('enviar-lead');
- let ready=false,sending=false;
+ let ready=false,sending=false,leadRequest;
  const headers={Authorization:`Bearer ${token}`};
  function logout(){localStorage.removeItem('dde_vendedor_token');localStorage.removeItem('dde_vendedor_usuario');window.location.replace('/vendedor/');}
  document.getElementById('sair').addEventListener('click',logout);
@@ -25,13 +25,15 @@
  })();
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(!ready||sending||!form.reportValidity())return;
-  const payload=Object.fromEntries(new FormData(form));sending=true;send.disabled=true;message.textContent='Enviando indicação…';
+  const payload=Object.fromEntries(new FormData(form));const body=JSON.stringify(payload);
+  if(leadRequest?.body!==body)leadRequest={body,key:crypto.randomUUID()};
+  sending=true;send.disabled=true;message.textContent='Enviando indicação…';
   try {
-   const response=await fetch('/api/vendedor/leads',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(20000)});
+   const response=await fetch('/api/vendedor/leads',{method:'POST',headers:{...headers,'Content-Type':'application/json','Idempotency-Key':leadRequest.key},body,signal:AbortSignal.timeout(20000)});
    const data=await response.json().catch(()=>({}));
    if(!response.ok)throw new Error(data.erro||'Não foi possível enviar. Confira seus leads antes de tentar novamente.');
    if(!data.lead?.id)throw new Error('Não foi possível confirmar o cadastro. Confira seus leads antes de reenviar.');
-   form.reset();message.textContent=`Lead nº ${data.lead.id} enviado ao administrador como Novo. Sua indicação ficou registrada.`;
+   form.reset();leadRequest=undefined;message.textContent=`Lead nº ${data.lead.id} enviado ao administrador como Novo. Sua indicação ficou registrada.`;
   } catch(error){message.textContent=error.name==='TimeoutError'?'Não foi possível confirmar o envio. Confira Meus leads antes de enviar novamente.':error.message;}
   finally{sending=false;send.disabled=false;}
  });

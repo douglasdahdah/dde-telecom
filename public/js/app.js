@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =====================================================
 
     const formulario = document.getElementById('form-lead');
+    let leadRequest;
 
     const campoNome = document.getElementById('nome');
     const campoTelefone = document.getElementById('telefone');
@@ -990,15 +991,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
 
-                    const resposta =
-                        await fetch(
-                            '/api/leads',
+                    const payload = JSON.stringify(dadosLead);
+                    if (leadRequest?.payload !== payload) leadRequest = {payload,key:crypto.randomUUID()};
+                    const resposta = await fetch('/api/leads',
                             {
                                 method: 'POST',
 
                                 headers: {
-                                    'Content-Type':
-                                        'application/json'
+                                    'Content-Type':'application/json', 'Idempotency-Key':leadRequest.key
                                 },
 
                                 body:
@@ -1036,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // -------------------------------------
 
                     formulario.reset();
+                    leadRequest = undefined;
 
                     mostrarMensagemFormulario(
                         'Solicitação enviada com sucesso! Nossa equipe entrará em contato.',

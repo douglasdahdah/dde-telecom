@@ -7,7 +7,12 @@ const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+require('dotenv').config({quiet:true});
+const { loadConfig } = require('./config');
+const { registerLead } = require('./lead-idempotency');
+const validation = require('./validation');
+const config = loadConfig();
+const staging = process.env.DDE_STAGING === 'true';
 const pool = require('./database/db');
 const { registerMetaIntegration } = require('./meta-integration');
 const { registerWhatsappNotifications } = require('./whatsapp-notifications');
@@ -27,32 +32,44 @@ const app = express();
 
 app.disable('x-powered-by');
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
-app.use(helmet({ contentSecurityPolicy: false }));
-const origens = new Set(
-    ['http://localhost:3000', 'http://127.0.0.1:3000', process.env.FRONTEND_URL]
-        .filter(Boolean)
-        .map(origem => {
-            try { return new URL(origem).origin; }
-            catch { return origem.replace(/\/+$/, ''); }
-        })
-);
+const directives = {
+    defaultSrc:["'self'"], scriptSrc:["'self'"], scriptSrcAttr:["'none'"],
+    styleSrc:["'self'","'unsafe-inline'",'https://fonts.googleapis.com'], fontSrc:["'self'",'https://fonts.gstatic.com'],
+    imgSrc:["'self'",'data:'], connectSrc:["'self'",'https://viacep.com.br'],
+    objectSrc:["'none'"], formAction:["'self'"], upgradeInsecureRequests:config.production?[]:null
+};
+const siteSecurity = helmet({contentSecurityPolicy:{directives}});
+const metaConnectSecurity = helmet({
+    crossOriginOpenerPolicy: {policy:'same-origin-allow-popups'},
+    contentSecurityPolicy:{directives:{...directives,
+        scriptSrc:[...directives.scriptSrc,'https://connect.facebook.net'],
+        connectSrc:[...directives.connectSrc,'https://www.facebook.com','https://graph.facebook.com'],
+        frameSrc:['https://www.facebook.com','https://web.facebook.com']
+    }}
+});
+app.use((req,res,next)=>{
+    const middleware = !staging && req.path === '/admin/conectar-whatsapp.html' ? metaConnectSecurity : siteSecurity;
+    middleware(req,res,next);
+});
 app.use(cors({
-    // Uma chamada do próprio site pode trazer o cabeçalho Origin. Para uma
-    // origem não listada, omitir os cabeçalhos CORS bloqueia a leitura entre
-    // sites sem transformar acessos normais ao próprio site em erro 500.
-    origin: (origin, callback) => callback(null, !origin || origens.has(origin)),
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin:(origin,callback)=>callback(!origin||config.origins.has(origin)?null:Object.assign(new Error('Origem não autorizada.'),{status:403}),true),
+    methods:['GET','POST','PATCH','DELETE','OPTIONS'],
+    allowedHeaders:['Content-Type','Authorization','Idempotency-Key']
 }));
 app.use(express.json({
     limit: '100kb',
+    inflate: false,
     verify: (req, res, buffer) => { req.rawBody = Buffer.from(buffer); }
 }));
-app.use((req, res, next) => { req.body = req.body || {}; next(); });
+app.use((req,res,next)=>{
+    if(req.path.startsWith('/api/'))res.set('Cache-Control','no-store');
+    if(Array.isArray(req.body))return res.status(400).json({erro:'Envie um objeto JSON válido.'});
+    req.body ||= {};
+    next();
+});
 app.use(express.static(path.join(__dirname, '..', 'public')));
-registerMetaIntegration(app, pool);
-registerWhatsappNotifications(app, pool);
-registerEmailNotifications(pool);
+const workers = staging ? [] : [registerMetaIntegration(app,pool),registerWhatsappNotifications(app,pool),registerEmailNotifications(pool)];
+const leadLimiter = rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:'draft-8',legacyHeaders:false,message:{erro:'Muitas solicitações. Aguarde alguns minutos.'}});
 
 
 const loginLimiter=rateLimit({
@@ -71,9 +88,6 @@ const loginLimiter=rateLimit({
 
     skipSuccessfulRequests:
         true,
-
-    skip:
-        ()=>process.env.NODE_ENV!=='production',
 
     message:{
         erro:
@@ -110,36 +124,13 @@ function origemDoLead(metadados) {
     const meio = texto(metadados?.utm_medium).toLowerCase();
     return /paid|cpc|ads|anuncio/.test(meio) ? 'meta_ads' : 'meta_social';
 }
-function normalizarLead(body = {}) {
-    return {
-        nome: texto(body.nome),
-        telefone: texto(body.telefone),
-        email: texto(body.email).toLowerCase(),
-        cep: texto(body.cep),
-        logradouro: texto(body.logradouro),
-        numero: texto(body.numero),
-        complemento: texto(body.complemento),
-        bairro: texto(body.bairro),
-        cidade: texto(body.cidade),
-        estado: texto(body.estado).toUpperCase(),
-        interesse: texto(body.interesse),
-        metadadosMarketing: normalizarMetadadosMarketing(body.metadados_marketing)
-    };
+function normalizarLead(body) {
+    const lead = validation.lead(body);
+    return {...lead, metadadosMarketing:normalizarMetadadosMarketing(body.metadados_marketing)};
 }
 function validarLead(lead, exigirInteresse = false) {
-    if (!lead.nome || !lead.telefone) return 'Nome e telefone são obrigatórios.';
     if (exigirInteresse && !lead.interesse) return 'Selecione o produto ou plano do cliente.';
-    if (lead.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) return 'Informe um e-mail válido.';
     if (JSON.stringify(lead.metadadosMarketing).length > 1000) return 'Os dados de origem ultrapassam o limite permitido.';
-
-    const limites = {
-        nome: 150, telefone: 20, email: 150, cep: 9, logradouro: 150,
-        numero: 20, complemento: 100, bairro: 100, cidade: 100,
-        estado: 2, interesse: 100
-    };
-    const campoExcedido = Object.entries(limites).find(([campo, limite]) => lead[campo].length > limite);
-    if (campoExcedido) return 'Um ou mais campos ultrapassam o limite permitido.';
-    if (lead.estado && !/^[A-Z]{2}$/.test(lead.estado)) return 'Informe a UF com duas letras.';
     return null;
 }
 function falhar(status, mensagem) {
@@ -164,9 +155,11 @@ async function transacao(fn) {
         cliente.release();
     }
 }
-async function protegerUltimoAdministrador(cliente, id, novoPerfil, novoAtivo) {
+async function protegerUltimoAdministrador(cliente, id, novoPerfil, novoAtivo, ator) {
     // Serializa alterações que poderiam remover o último administrador ativo.
-    await cliente.query("SELECT pg_advisory_xact_lock(hashtext('dde-telecom-active-admin'))");
+    await cliente.query("SELECT pg_advisory_xact_lock(hashtext('dde-telecom-initial-admin'))");
+    const permissao = await cliente.query("SELECT 1 FROM usuarios WHERE id=$1 AND ativo AND perfil='admin'",[ator]);
+    if (!permissao.rowCount) falhar(403, 'Sua conta não possui mais acesso administrativo.');
     const atual = await cliente.query(
         'SELECT perfil, ativo FROM usuarios WHERE id = $1 FOR UPDATE', [id]
     );
@@ -181,7 +174,7 @@ async function protegerUltimoAdministrador(cliente, id, novoPerfil, novoAtivo) {
         "SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'admin' AND ativo = TRUE"
     );
     if (Number(total.rows[0].total) <= 1) {
-        falhar(400, 'Mantenha pelo menos um administrador ativo.');
+        falhar(409, 'Mantenha pelo menos um administrador ativo.');
     }
 }
 function validarId(req, res, next) {
@@ -197,7 +190,7 @@ async function autenticar(req, res, next) {
         falhar(401, 'Faça login para continuar.');
     }
     let token;
-    try { token = jwt.verify(partes[1], process.env.JWT_SECRET, { algorithms: ['HS256'] }); }
+    try { token = jwt.verify(partes[1], config.secret, { algorithms: ['HS256'] }); }
     catch { falhar(401, 'Sessão inválida ou expirada. Faça login novamente.'); }
     if (!idValido(token.id)) falhar(401, 'Sessão inválida.');
     const { rows } = await pool.query(
@@ -287,10 +280,7 @@ app.get(
 
         }catch(erro){
 
-            console.error(
-                'Erro ao listar usuários:',
-                erro
-            );
+            console.error('Erro ao listar usuários:', erro?.code || 'operation_error');
 
 
             return res.status(500).json({
@@ -388,20 +378,20 @@ app.post(
 
 
             if(
-                senha.length<8 ||
+                senha.length<12 ||
                 Buffer.byteLength(senha, 'utf8') > 72
             ){
 
                 return res.status(400).json({
                     erro:
-                        'A senha deve ter pelo menos 8 caracteres.'
+                        'A senha deve ter pelo menos 12 caracteres.'
                 });
             }
 
 
             const existente=
                 await pool.query(
-                    'SELECT id FROM usuarios WHERE LOWER(email) = $1 LIMIT 1',
+                    'SELECT id FROM usuarios WHERE LOWER(btrim(email)) = $1 LIMIT 1',
                     [
                         email
                     ]
@@ -422,7 +412,7 @@ app.post(
             const hash=
                 await bcrypt.hash(
                     senha,
-                    10
+                    12
                 );
 
 
@@ -450,10 +440,7 @@ app.post(
 
         }catch(erro){
 
-            console.error(
-                'Erro ao cadastrar usuário:',
-                erro
-            );
+            console.error('Erro ao cadastrar usuário:', erro?.code || 'operation_error');
 
 
             const status = erro.code === '23505' ? 409 : (erro.status || 500);
@@ -552,7 +539,7 @@ app.patch(
 
             const existente=
                 await pool.query(
-                    'SELECT id FROM usuarios WHERE LOWER(email) = $1 AND id <> $2 LIMIT 1',
+                    'SELECT id FROM usuarios WHERE LOWER(btrim(email)) = $1 AND id <> $2 LIMIT 1',
                     [
                         email,
                         id
@@ -572,9 +559,9 @@ app.patch(
 
 
             const resultado = await transacao(async cliente => {
-                await protegerUltimoAdministrador(cliente, id, perfil, undefined);
+                await protegerUltimoAdministrador(cliente, id, perfil, undefined, req.usuario.id);
                 return cliente.query(
-                    'UPDATE usuarios SET nome=$1,email=$2,perfil=$3 WHERE id=$4 RETURNING id,nome,email,perfil,ativo',
+                    'UPDATE usuarios SET nome=$1,email=$2,perfil=$3,atualizado_em=NOW() WHERE id=$4 RETURNING id,nome,email,perfil,ativo',
                     [nome, email, perfil, id]
                 );
             });
@@ -603,10 +590,7 @@ app.patch(
 
         }catch(erro){
 
-            console.error(
-                'Erro ao atualizar usuário:',
-                erro
-            );
+            console.error('Erro ao atualizar usuário:', erro?.code || 'operation_error');
 
 
             const status = erro.code === '23505' ? 409 : (erro.status || 500);
@@ -681,9 +665,9 @@ async function alterarStatusUsuarioDDE(
 
 
         const resultado = await transacao(async cliente => {
-            await protegerUltimoAdministrador(cliente, id, undefined, ativo);
+            await protegerUltimoAdministrador(cliente, id, undefined, ativo, req.usuario.id);
             return cliente.query(
-                'UPDATE usuarios SET ativo=$1 WHERE id=$2 RETURNING id,nome,email,perfil,ativo',
+                'UPDATE usuarios SET ativo=$1,atualizado_em=NOW() WHERE id=$2 RETURNING id,nome,email,perfil,ativo',
                 [ativo, id]
             );
         });
@@ -716,10 +700,7 @@ async function alterarStatusUsuarioDDE(
 
     }catch(erro){
 
-        console.error(
-            'Erro ao alterar status do usuário:',
-            erro
-        );
+        console.error('Erro ao alterar status do usuário:', erro?.code || 'operation_error');
 
 
         const status = erro.code === '23505' ? 409 : (erro.status || 500);
@@ -785,13 +766,13 @@ app.patch(
 
 
             if(
-                senha.length<8 ||
+                senha.length<12 ||
                 Buffer.byteLength(senha, 'utf8') > 72
             ){
 
                 return res.status(400).json({
                     erro:
-                        'A senha deve ter pelo menos 8 caracteres.'
+                        'A senha deve ter pelo menos 12 caracteres.'
                 });
             }
 
@@ -799,13 +780,13 @@ app.patch(
             const hash=
                 await bcrypt.hash(
                     senha,
-                    10
+                    12
                 );
 
 
             const resultado=
                 await pool.query(
-                    'UPDATE usuarios SET senha_hash=$1 WHERE id=$2 RETURNING id',
+                    'UPDATE usuarios SET senha_hash=$1,atualizado_em=NOW() WHERE id=$2 RETURNING id',
                     [
                         hash,
                         id
@@ -832,10 +813,7 @@ app.patch(
 
         }catch(erro){
 
-            console.error(
-                'Erro ao redefinir senha:',
-                erro
-            );
+            console.error('Erro ao redefinir senha:', erro?.code || 'operation_error');
 
 
             return res.status(500).json({
@@ -861,17 +839,17 @@ async function realizarLogin(req, res, perfilExigido) {
         falhar(400, 'Informe e-mail e senha válidos.');
     }
     const { rows } = await pool.query(
-        'SELECT id, nome, email, senha_hash, perfil, ativo FROM usuarios WHERE LOWER(email) = $1 LIMIT 1', [email]
+        'SELECT id, nome, email, senha_hash, perfil, ativo FROM usuarios WHERE LOWER(btrim(email)) = $1 LIMIT 1', [email]
     );
     const usuario = rows[0];
     if (!usuario || !(await bcrypt.compare(senha, usuario.senha_hash))) falhar(401, 'E-mail ou senha inválidos.');
     if (!usuario.ativo) falhar(403, 'Usuário desativado.');
     if (perfilExigido && usuario.perfil !== perfilExigido) falhar(403, 'Utilize a página de acesso correspondente ao seu perfil.');
-    if (!process.env.JWT_SECRET) falhar(500, 'Autenticação não configurada no servidor.');
+    if (!config.secret) falhar(500, 'Autenticação não configurada no servidor.');
     const token = jwt.sign({
         id: usuario.id, email: usuario.email, perfil: usuario.perfil,
         sv: assinaturaSenha(usuario.senha_hash)
-    }, process.env.JWT_SECRET, { algorithm: 'HS256', expiresIn: process.env.JWT_EXPIRES_IN || '8h' });
+    }, config.secret, { algorithm: 'HS256', expiresIn: config.expiresIn });
     res.json({ mensagem: 'Login realizado com sucesso.', token, usuario: usuarioPublico(usuario) });
 }
 app.post('/api/auth/login', loginLimiter, async (req, res) => realizarLogin(req, res));
@@ -950,10 +928,7 @@ app.get('/api/auth/me', autenticar, async (req, res) => {
 
     } catch (erro) {
 
-        console.error(
-            'Erro ao validar sessão:',
-            erro
-        );
+        console.error('Erro ao validar sessão:', erro?.code || 'operation_error');
 
 
         return res.status(500).json({
@@ -974,7 +949,7 @@ app.get('/api/planos', async (req, res) => {
                     tipo,
                     velocidade,
                     franquia,
-                    preco,
+                    CASE WHEN promocional AND oferta_valida_ate < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date THEN preco_original ELSE preco END AS preco,
                     descricao,
                     destaque,
                     selo,
@@ -982,13 +957,13 @@ app.get('/api/planos', async (req, res) => {
                     beneficios,
                     fidelidade_meses,
                     preco_original,
-                    promocional,
-                    oferta_valida_ate,
+                    (promocional AND NOT COALESCE(oferta_valida_ate < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date,false)) AS promocional,
+                    to_char(oferta_valida_ate,'YYYY-MM-DD') AS oferta_valida_ate,
                     observacoes,
                     atualizado_em
                 FROM planos
                 WHERE ativo = TRUE
-                  AND (oferta_valida_ate IS NULL OR oferta_valida_ate >= CURRENT_DATE)
+                  AND (oferta_valida_ate IS NULL OR NOT (oferta_valida_ate < (NOW() AT TIME ZONE 'America/Sao_Paulo')::date) OR (promocional AND preco_original > preco))
                 ORDER BY
                     CASE tipo
                         WHEN 'internet' THEN 1
@@ -1004,180 +979,13 @@ app.get('/api/planos', async (req, res) => {
             resultado.rows
         );
     } catch (erro) {
-        console.error(
-            'Erro ao buscar planos:',
-            erro
-        );
+        console.error('Erro ao buscar planos:', erro?.code || 'operation_error');
         res.status(500).json({
             erro:
                 'Não foi possível carregar os planos.'
         });
     }
 });
-const tiposPlanoPermitidos = [
-    'internet',
-    'controle',
-    'pos'
-];
-function normalizarBeneficios(valor) {
-    if (Array.isArray(valor)) {
-        return valor
-            .map(
-                item =>
-                    String(item || '').trim()
-            )
-            .filter(Boolean);
-    }
-    if (typeof valor === 'string') {
-        const texto =
-            valor.trim();
-        if (!texto) {
-            return [];
-        }
-        try {
-            const convertido =
-                JSON.parse(texto);
-            if (Array.isArray(convertido)) {
-                return convertido
-                    .map(
-                        item =>
-                            String(item || '').trim()
-                    )
-                    .filter(Boolean);
-            }
-        } catch (erro) {
-            return texto
-                .split(/\r?\n/)
-                .map(
-                    item =>
-                        item.trim()
-                )
-                .filter(Boolean);
-        }
-    }
-    return [];
-}
-function normalizarPlano(body = {}) {
-    const nome =
-        typeof body.nome === 'string'
-            ? body.nome.trim()
-            : '';
-    const tipo =
-        typeof body.tipo === 'string'
-            ? body.tipo.trim().toLowerCase()
-            : '';
-    const velocidade =
-        typeof body.velocidade === 'string'
-            ? body.velocidade.trim() || null
-            : null;
-    const franquia =
-        typeof body.franquia === 'string'
-            ? body.franquia.trim() || null
-            : null;
-    const descricao =
-        typeof body.descricao === 'string'
-            ? body.descricao.trim() || null
-            : null;
-    const selo =
-        typeof body.selo === 'string'
-            ? body.selo.trim() || null
-            : null;
-    const preco =
-        Number(body.preco);
-    const ativo =
-        typeof body.ativo === 'boolean'
-            ? body.ativo
-            : true;
-    const destaque =
-        typeof body.destaque === 'boolean'
-            ? body.destaque
-            : false;
-    const ordem =
-        body.ordem === '' ||
-        body.ordem === null ||
-        body.ordem === undefined
-            ? 0
-            : Number(body.ordem);
-    const fidelidadeMeses =
-        body.fidelidade_meses === '' ||
-        body.fidelidade_meses === null ||
-        body.fidelidade_meses === undefined
-            ? null
-            : Number(body.fidelidade_meses);
-    const beneficios =
-        normalizarBeneficios(
-            body.beneficios
-        );
-    return {
-        nome,
-        tipo,
-        velocidade,
-        franquia,
-        preco,
-        descricao,
-        ativo,
-        destaque,
-        selo,
-        ordem,
-        beneficios,
-        fidelidade_meses:
-            fidelidadeMeses
-    };
-}
-function validarPlano(plano) {
-    if (!plano.nome) {
-        return 'O nome do plano é obrigatório.';
-    }
-    if (!tiposPlanoPermitidos.includes(plano.tipo)) {
-        return 'Tipo de plano inválido.';
-    }
-    if (
-        !Number.isFinite(plano.preco) ||
-        plano.preco < 0
-    ) {
-        return 'Informe um preço válido.';
-    }
-    if (
-        !Number.isInteger(plano.ordem) ||
-        plano.ordem < 0
-    ) {
-        return 'A ordem de exibição deve ser um número inteiro igual ou maior que zero.';
-    }
-    if (
-        plano.fidelidade_meses !== null &&
-        (
-            !Number.isInteger(
-                plano.fidelidade_meses
-            ) ||
-            plano.fidelidade_meses < 0
-        )
-    ) {
-        return 'A fidelidade deve ser informada em meses.';
-    }
-    if (plano.nome.length > 150) {
-        return 'O nome do plano é muito longo.';
-    }
-    if (
-        plano.selo &&
-        plano.selo.length > 100
-    ) {
-        return 'O selo do plano é muito longo.';
-    }
-    if (
-        plano.beneficios.length > 20
-    ) {
-        return 'Informe no máximo 20 benefícios por plano.';
-    }
-    const beneficioMuitoLongo =
-        plano.beneficios.some(
-            item =>
-                item.length > 200
-        );
-    if (beneficioMuitoLongo) {
-        return 'Cada benefício deve ter no máximo 200 caracteres.';
-    }
-    return null;
-}
 app.get(
     '/api/admin/planos',
     autenticar,
@@ -1202,7 +1010,7 @@ app.get(
                         fidelidade_meses,
                         preco_original,
                         promocional,
-                        oferta_valida_ate,
+                        to_char(oferta_valida_ate,'YYYY-MM-DD') AS oferta_valida_ate,
                         observacoes,
                         criado_em,
                         atualizado_em
@@ -1222,10 +1030,7 @@ app.get(
                 resultado.rows
             );
         } catch (erro) {
-            console.error(
-                'Erro ao listar planos no painel:',
-                erro
-            );
+            console.error('Erro ao listar planos no painel:', erro?.code || 'operation_error');
             res.status(500).json({
                 erro:
                     'Não foi possível carregar os planos.'
@@ -1265,7 +1070,7 @@ app.get(
                         fidelidade_meses,
                         preco_original,
                         promocional,
-                        oferta_valida_ate,
+                        to_char(oferta_valida_ate,'YYYY-MM-DD') AS oferta_valida_ate,
                         observacoes,
                         criado_em,
                         atualizado_em
@@ -1284,10 +1089,7 @@ app.get(
                 resultado.rows[0]
             );
         } catch (erro) {
-            console.error(
-                'Erro ao buscar plano no painel:',
-                erro
-            );
+            console.error('Erro ao buscar plano no painel:', erro?.code || 'operation_error');
             res.status(500).json({
                 erro:
                     'Não foi possível carregar o plano.'
@@ -1295,162 +1097,25 @@ app.get(
         }
     }
 );
-app.post(
-    '/api/admin/planos',
-    autenticar,
-    somenteAdmin,
-    async (req, res) => {
-        try {
-            const plano =
-                normalizarPlano(req.body);
-            const erroValidacao =
-                validarPlano(plano);
-            if (erroValidacao) {
-                return res.status(400).json({
-                    erro: erroValidacao
-                });
-            }
-            const resultado =
-                await pool.query(
-                    `
-                    INSERT INTO planos (
-                        nome,
-                        tipo,
-                        velocidade,
-                        franquia,
-                        preco,
-                        descricao,
-                        ativo,
-                        destaque,
-                        selo,
-                        ordem,
-                        beneficios,
-                        fidelidade_meses
-                    )
-                    VALUES (
-                        $1, $2, $3, $4, $5, $6,
-                        $7, $8, $9, $10, $11::jsonb, $12
-                    )
-                    RETURNING *
-                    `,
-                    [
-                        plano.nome,
-                        plano.tipo,
-                        plano.velocidade,
-                        plano.franquia,
-                        plano.preco,
-                        plano.descricao,
-                        plano.ativo,
-                        plano.destaque,
-                        plano.selo,
-                        plano.ordem,
-                        JSON.stringify(
-                            plano.beneficios
-                        ),
-                        plano.fidelidade_meses
-                    ]
-                );
-            res.status(201).json({
-                mensagem:
-                    'Plano criado com sucesso.',
-                plano:
-                    resultado.rows[0]
-            });
-        } catch (erro) {
-            console.error(
-                'Erro ao criar plano:',
-                erro
-            );
-            res.status(500).json({
-                erro:
-                    'Não foi possível criar o plano.'
-            });
+const planFields = ['nome','tipo','velocidade','franquia','preco','descricao','ativo','destaque','selo','ordem','fidelidade_meses','preco_original','promocional','oferta_valida_ate','observacoes','beneficios'];
+async function salvarPlano(req,res) {
+    const id=req.params.id;
+    const result=await transacao(async client=>{
+        let body=req.body;
+        if(id){
+            const {rows}=await client.query("SELECT *,to_char(oferta_valida_ate,'YYYY-MM-DD') AS oferta_valida_ate FROM planos WHERE id=$1 FOR UPDATE",[id]);
+            if(!rows.length)falhar(404,'Plano não encontrado.');
+            body={...rows[0],...body};
         }
-    }
-);
-app.patch(
-    '/api/admin/planos/:id',
-    autenticar,
-    somenteAdmin,
-    async (req, res) => {
-        try {
-            const { id } =
-                req.params;
-            if (!/^\d+$/.test(id)) {
-                return res.status(400).json({
-                    erro: 'ID inválido.'
-                });
-            }
-            const plano =
-                normalizarPlano(req.body);
-            const erroValidacao =
-                validarPlano(plano);
-            if (erroValidacao) {
-                return res.status(400).json({
-                    erro: erroValidacao
-                });
-            }
-            const resultado =
-                await pool.query(
-                    `
-                    UPDATE planos
-                    SET
-                        nome = $1,
-                        tipo = $2,
-                        velocidade = $3,
-                        franquia = $4,
-                        preco = $5,
-                        descricao = $6,
-                        ativo = $7,
-                        destaque = $8,
-                        selo = $9,
-                        ordem = $10,
-                        beneficios = $11::jsonb,
-                        fidelidade_meses = $12
-                    WHERE id = $13
-                    RETURNING *
-                    `,
-                    [
-                        plano.nome,
-                        plano.tipo,
-                        plano.velocidade,
-                        plano.franquia,
-                        plano.preco,
-                        plano.descricao,
-                        plano.ativo,
-                        plano.destaque,
-                        plano.selo,
-                        plano.ordem,
-                        JSON.stringify(
-                            plano.beneficios
-                        ),
-                        plano.fidelidade_meses,
-                        id
-                    ]
-                );
-            if (resultado.rows.length === 0) {
-                return res.status(404).json({
-                    erro: 'Plano não encontrado.'
-                });
-            }
-            res.json({
-                mensagem:
-                    'Plano atualizado com sucesso.',
-                plano:
-                    resultado.rows[0]
-            });
-        } catch (erro) {
-            console.error(
-                'Erro ao atualizar plano:',
-                erro
-            );
-            res.status(500).json({
-                erro:
-                    'Não foi possível atualizar o plano.'
-            });
-        }
-    }
-);
+        const plan=validation.plan(body);
+        const values=planFields.map(field=>field==='beneficios'?JSON.stringify(plan[field]):plan[field]);
+        return id ? client.query(`UPDATE planos SET ${planFields.map((f,i)=>`${f}=$${i+1}`).join(',')} WHERE id=$${values.length+1} RETURNING *`,[...values,id])
+            : client.query(`INSERT INTO planos(${planFields.join(',')}) VALUES(${values.map((_,i)=>`$${i+1}`).join(',')}) RETURNING *`,values);
+    });
+    res.status(id?200:201).json({mensagem:'Plano salvo.',plano:result.rows[0]});
+}
+app.post('/api/admin/planos',autenticar,somenteAdmin,executar(salvarPlano));
+app.patch('/api/admin/planos/:id',autenticar,somenteAdmin,validarId,executar(salvarPlano));
 app.patch(
     '/api/admin/planos/:id/status',
     autenticar,
@@ -1500,10 +1165,7 @@ app.patch(
                     resultado.rows[0]
             });
         } catch (erro) {
-            console.error(
-                'Erro ao alterar status do plano:',
-                erro
-            );
+            console.error('Erro ao alterar status do plano:', erro?.code || 'operation_error');
             res.status(500).json({
                 erro:
                     'Não foi possível alterar o status do plano.'
@@ -1548,10 +1210,7 @@ app.delete(
                     resultado.rows[0]
             });
         } catch (erro) {
-            console.error(
-                'Erro ao excluir plano:',
-                erro
-            );
+            console.error('Erro ao excluir plano:', erro?.code || 'operation_error');
             res.status(500).json({
                 erro:
                     'Não foi possível excluir o plano.'
@@ -1632,10 +1291,7 @@ app.get(
 
         } catch (erro) {
 
-            console.error(
-                'Erro ao validar vendedor:',
-                erro
-            );
+            console.error('Erro ao validar vendedor:', erro?.code || 'operation_error');
 
 
             return res.status(500).json({
@@ -1651,19 +1307,20 @@ app.get(
 // CADASTRAR LEAD DO VENDEDOR
 // =====================================================
 
-registerVendorLeadCreation(app,pool,{autenticar,normalizarLead,validarLead});
+registerVendorLeadCreation(app,pool,{autenticar,normalizarLead,validarLead,leadLimiter,registerLead: (options,insert)=>registerLead(transacao,options,insert)});
 
 // ===== DDE VENDEDOR REPARO END =====
 
 
-app.post('/api/leads', executar(async (req, res) => {
+app.post('/api/leads', leadLimiter, executar(async (req, res) => {
     const lead = normalizarLead(req.body);
     const erroLead = validarLead(lead);
     if (erroLead) falhar(400, erroLead);
-    const admins = await pool.query("SELECT id, nome FROM usuarios WHERE perfil = 'admin' AND ativo = TRUE ORDER BY id LIMIT 1");
-    if (!admins.rows.length) falhar(500, 'Administrador não encontrado ou desativado.');
+    const result = await registerLead(transacao,{scope:'site',data:lead,key:req.get('Idempotency-Key')},async client=>{
+    const admins = await client.query("SELECT id, nome FROM usuarios WHERE perfil = 'admin' AND ativo = TRUE ORDER BY id LIMIT 1 FOR SHARE");
+    if (!admins.rows.length) falhar(503, 'Atendimento temporariamente indisponível.');
     const admin = admins.rows[0];
-    const { rows } = await pool.query(`
+    const { rows } = await client.query(`
         INSERT INTO leads (
             nome, telefone, email, cep, logradouro, numero, complemento, bairro,
             cidade, estado, interesse, vendedor, vendedor_id, origem, metadados_marketing
@@ -1676,8 +1333,10 @@ app.post('/api/leads', executar(async (req, res) => {
             lead.interesse || null, admin.nome, admin.id, origemDoLead(lead.metadadosMarketing),
             JSON.stringify(lead.metadadosMarketing)]
     );
-    notifyNewLead();
-    res.status(201).json({ mensagem: 'Lead cadastrado com sucesso.', lead: rows[0] });
+    return rows[0];
+    });
+    if (!result.duplicate) notifyNewLead();
+    res.status(result.duplicate ? 200 : 201).json({ mensagem:'Lead cadastrado com sucesso.', protocolo:result.lead.id, duplicado:result.duplicate });
 }));
 // A restrição por vendedor é aplicada dentro de cada consulta ao banco.
 
@@ -1739,10 +1398,7 @@ app.get(
 
         }catch(e){
 
-            console.error(
-                'Erro ao buscar leads:',
-                e
-            );
+            console.error('Erro ao buscar leads:', erro?.code || 'operation_error');
 
             return res.status(500).json({
                 erro:
@@ -1807,13 +1463,29 @@ app.patch('/api/leads/:id/vendedor', autenticar, somenteAdmin, validarId, execut
     res.json({ mensagem: 'Responsável atualizado.', lead });
 }));
 
+app.get('/ready', executar(async (req,res)=>{
+    try {
+        const {rows}=await pool.query("SELECT EXISTS(SELECT 1 FROM usuarios WHERE perfil='admin' AND ativo) AND EXISTS(SELECT 1 FROM schema_migrations WHERE versao='12.0.1') AS ready");
+        await pool.query('SELECT 1 FROM lead_requisicoes LIMIT 1');
+        if(rows[0].ready)return res.json({status:'ready'});
+    } catch {}
+    res.status(503).json({status:'unavailable'});
+}));
 app.use((erro, req, res, next) => {
     if (res.headersSent) return next(erro);
-    const status = erro.status || (erro.code === '23505' ? 409 : 500);
-    if (status >= 500) console.error('Erro no servidor:', erro.message);
-    res.status(status).json({ erro: erro.code === '23505' ? 'Este cadastro já existe.' :
-        status >= 500 ? 'Não foi possível concluir a operação.' : erro.message });
+    const databaseError = {'23505':[409,'Este cadastro já existe.'],'23503':[409,'Este registro possui vínculos.'],'22001':[400,'Um campo excedeu o tamanho permitido.'],'22P02':[400,'Valor inválido.']}[erro.code];
+    const status = erro.status || databaseError?.[0] || 500;
+    if (status >= 500) console.error('Erro no servidor:', erro?.code || 'operation_error');
+    res.status(status).json({ erro: databaseError?.[1] || (
+        status >= 500 ? 'Não foi possível concluir a operação.' : erro.type==='entity.parse.failed' ? 'JSON inválido.' : erro.message) });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`DDE Telecom rodando na porta ${PORT}`));
+if(require.main===module){
+    const server=app.listen(process.env.PORT||3000,()=>console.log('DDE Telecom iniciada.'));
+    let stopping=false;
+    const stop=()=>{if(stopping)return;stopping=true;for(const worker of workers)worker?.stop?.();
+        const timer=setTimeout(()=>process.exit(1),10000);timer.unref();
+        server.close(async()=>{await pool.end();clearTimeout(timer);});};
+    process.on('SIGTERM',stop);process.on('SIGINT',stop);
+}
+module.exports=app;
