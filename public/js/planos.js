@@ -3,6 +3,11 @@
 let planosDDE = [];
 let tipoPlanoAtual = 'internet';
 const iconePlano = nome => '<svg class="icon" aria-hidden="true"><use href="#i-' + nome + '"/></svg>';
+const precosReferenciaAlgarUberaba = new Map([
+  ['Internet 700 Mega + Super Wi-Fi', 129.90],
+  ['Internet 700 Mega + Controle 55 GB', 149.90],
+]);
+const dataConsultaAlgarUberaba = '11/11/2026';
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.aba-plano').forEach(botao => botao.addEventListener('click', () => mostrarPlanos(botao.dataset.tipo)));
@@ -71,10 +76,16 @@ function montarCardPlano(p) {
   const card = document.createElement('article');
   card.className = 'plano-card' + (p.destaque ? ' destaque' : '') + (combo ? ' combo' : '');
   if (p.sob_consulta === true) {
+    const referencia = precosReferenciaAlgarUberaba.get(p.nome);
+    const precoReferencia = referencia === undefined ? '' :
+      '<p class="plano-referencia"><a href="https://loja.algar.com.br/para-voce/internet/">Referência da loja Algar em Uberaba</a>' +
+      '<strong>' + esc(referencia.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})) + '/mês</strong>' +
+      '<small>Consulta em ' + dataConsultaAlgarUberaba + '. Valor exibido por 12 meses com débito automático.</small></p>';
     card.innerHTML = '<div class="plano-card-conteudo">' +
       '<div class="plano-category">' + iconePlano(tipo === 'internet' ? 'wifi' : 'phone') + esc(categoria) + '</div>' +
       '<h3 class="plano-descricao">' + esc(p.nome) + '</h3>' +
-      '<p class="plano-condicoes">Preço e disponibilidade sob consulta.</p>' +
+      precoReferencia +
+      '<p class="plano-condicoes plano-sob-consulta">Preço e disponibilidade sob consulta.</p>' +
       '<button type="button" class="btn btn-mint botao-plano" data-plano="' + esc(p.nome) +
       '" aria-label="Solicitar consulta sobre ' + esc(p.nome) + '">Solicitar consulta ' + iconePlano('arrow') + '</button></div>';
     return card;
