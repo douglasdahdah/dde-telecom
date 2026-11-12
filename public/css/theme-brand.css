@@ -170,6 +170,8 @@ body { background: #fff; }
 .sales-form-clean label { font-size: 14px; gap: 5px; }
 .sales-form-clean input, .sales-form-clean select { min-height: 44px; padding: 9px 11px; font-size: 16px; line-height: 1.4; border-color: #ccdde7; background: #fcfdff; }
 .sales-form-clean input:focus-visible, .sales-form-clean select:focus-visible { outline: 2px solid #3d93ce; outline-offset: 2px; }
+.meta-lead-opcao label { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; font-weight: 500; }
+.meta-lead-opcao input[type="checkbox"] { width: 16px; height: 16px; min-height: 0; flex: none; margin: 1px 0 0; padding: 0; accent-color: #0d4d77; }
 .sales-form-clean .btn { min-height: 48px; padding: 12px; font-size: 15px; }
 .privacy-clean { font-size: 11px; line-height: 1.5; }
 .privacy-clean a { color: #176fa6; }

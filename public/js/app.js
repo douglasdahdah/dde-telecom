@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =====================================================
 
     const formulario = document.getElementById('form-lead');
+    const consentimentoMeta = document.getElementById('meta-lead-consentimento');
     let leadRequest;
 
     const campoNome = document.getElementById('nome');
@@ -991,6 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
 
+                    const medirEnvio = consentimentoMeta?.checked === true;
                     const payload = JSON.stringify(dadosLead);
                     if (leadRequest?.payload !== payload) leadRequest = {payload,key:crypto.randomUUID()};
                     const resposta = await fetch('/api/leads',
@@ -1035,7 +1037,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     // SUCESSO
                     // -------------------------------------
 
+                    const novoLeadComConsentimento = medirEnvio && consentimentoMeta.checked &&
+                        resposta.status === 201 && resultado.duplicado === false &&
+                        Number.isSafeInteger(resultado.protocolo) && resultado.protocolo > 0;
                     formulario.reset();
+                    if (novoLeadComConsentimento) window.registrarConversaoMetaDDE?.();
                     leadRequest = undefined;
 
                     mostrarMensagemFormulario(

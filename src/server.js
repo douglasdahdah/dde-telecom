@@ -39,6 +39,14 @@ const directives = {
     objectSrc:["'none'"], formAction:["'self'"], upgradeInsecureRequests:config.production?[]:null
 };
 const siteSecurity = helmet({contentSecurityPolicy:{directives}});
+const pixelEventSources = ['https://www.facebook.com/tr', 'https://www.facebook.com/tr/'];
+const metaPixelSecurity = config.metaPixelId ? helmet({
+    contentSecurityPolicy:{directives:{...directives,
+        scriptSrc:[...directives.scriptSrc,'https://connect.facebook.net'],
+        imgSrc:[...directives.imgSrc,...pixelEventSources],
+        connectSrc:[...directives.connectSrc,...pixelEventSources]
+    }}
+}) : siteSecurity;
 const metaConnectSecurity = helmet({
     crossOriginOpenerPolicy: {policy:'same-origin-allow-popups'},
     contentSecurityPolicy:{directives:{...directives,
@@ -48,7 +56,9 @@ const metaConnectSecurity = helmet({
     }}
 });
 app.use((req,res,next)=>{
-    const middleware = !staging && req.path === '/admin/conectar-whatsapp.html' ? metaConnectSecurity : siteSecurity;
+    const publicLanding = req.path === '/' || req.path === '/index.html';
+    const middleware = publicLanding ? metaPixelSecurity :
+        !staging && req.path === '/admin/conectar-whatsapp.html' ? metaConnectSecurity : siteSecurity;
     middleware(req,res,next);
 });
 app.use(cors({
@@ -68,6 +78,7 @@ app.use((req,res,next)=>{
     next();
 });
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.get('/api/meta-pixel', (_req, res) => res.json({ id: config.metaPixelId }));
 const workers = staging ? [] : [registerMetaIntegration(app,pool),registerWhatsappNotifications(app,pool),registerEmailNotifications(pool)];
 const leadLimiter = rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:'draft-8',legacyHeaders:false,message:{erro:'Muitas solicitações. Aguarde alguns minutos.'}});
 

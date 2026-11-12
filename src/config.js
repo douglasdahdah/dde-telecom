@@ -43,7 +43,9 @@ function loadConfig(env = process.env) {
     throw new Error(
       "JWT_EXPIRES_IN deve usar segundos, minutos, horas ou dias (ex.: 8h).",
     );
-  return { production, secret, origins, expiresIn };
+  const pixelId = (env.META_PIXEL_ID || "").trim();
+  const metaPixelId = /^[1-9]\d{5,24}$/.test(pixelId) ? pixelId : null;
+  return { production, secret, origins, expiresIn, metaPixelId };
 }
 
 module.exports = { loadConfig };
