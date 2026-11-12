@@ -6,7 +6,6 @@ const iconePlano = nome => '<svg class="icon" aria-hidden="true"><use href="#i-'
 const precosReferenciaAlgarUberaba = new Map([
   ['Internet 700 Mega + Super Wi-Fi', { preco: 129.90, condicoes: 'Valor exibido por 12 meses com débito automático.' }],
   ['Internet 700 Mega + Controle 55 GB', { preco: 149.90, condicoes: 'Valor exibido por 12 meses com débito automático.' }],
-  ['Algar Pós Top Ilimitado', { preco: 228.84, condicoes: 'Plano avulso. O regulamento informa R$ 229,07/mês.' }],
 ]);
 const dataConsultaAlgarUberaba = '11/11/2026';
 // Vende Junto Liderança Varejo, adesão ou migração em Uberaba de 03 a 30/11/2026.
@@ -107,13 +106,13 @@ function montarCardPlano(p) {
     </header>
     <div class="oferta-corpo">
       ${preco ? `<div class="oferta-valor${consulta ? ' plano-referencia' : ''}">
-        ${celular ? `<span class="oferta-rotulo">${consulta ? 'Avulso · preço de referência' : 'Avulso · sem internet fixa'}</span>`
+        ${celular ? '<span class="oferta-rotulo">Plano avulso de celular</span>'
           : consulta ? '<span class="oferta-rotulo">Referência de preço para Uberaba</span>' : ''}
         ${anterior ? '<s class="oferta-rotulo">' + esc(anterior) + '</s>' : ''}
-        <div class="oferta-preco"><strong>${esc(preco)}</strong><span>/mês</span></div>
+        <div class="oferta-preco"><strong>${esc(preco)}</strong><span>${celular ? '/mês por linha' : '/mês'}</span></div>
       </div>` : ''}
       ${consulta ? `
-        <p class="oferta-nota plano-sob-consulta">Preço e disponibilidade sob consulta.</p>
+        <p class="oferta-nota plano-sob-consulta">${celular ? 'Preço avulso e disponibilidade sob consulta.' : 'Preço e disponibilidade sob consulta.'}</p>
         ${referencia ? `<p class="oferta-condicoes">Consultado em ${dataConsultaAlgarUberaba}. ${esc(referencia.condicoes)}</p>` : ''}
       ` : `
         <p class="oferta-condicoes">${esc(condicoes)}</p>
@@ -127,7 +126,7 @@ function montarCardPlano(p) {
       ${valorNoCombo !== undefined ? `<div class="oferta-valor-combo">
         <span class="oferta-rotulo">Só no combo com internet</span>
         <div class="oferta-preco"><strong>${esc(valorNoCombo.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}))}</strong><span>/mês por linha</span></div>
-        <p>Valor da linha por 12 meses. Adesão até 30/11/2026, com fidelidade de 12 meses e sujeita à viabilidade da internet.</p>
+        <p>Preço da linha de celular, válido por 12 meses. Consulte o total do combo. Adesão até 30/11/2026, com fidelidade de 12 meses e sujeita à viabilidade da internet.</p>
       </div>` : ''}
       <button type="button" class="btn botao-plano" data-plano="${esc(p.nome)}" aria-label="${consulta ? 'Solicitar consulta sobre ' : 'Quero conhecer '}${esc(p.nome)}">${acao} ${iconePlano('arrow')}</button>
     </div>`;
